@@ -313,3 +313,37 @@ var settings = {
 	});
 
 })(jQuery);
+
+function openModal() {
+  // Get the <select> element
+  const selector = document.getElementById('imageSelector');
+
+  // Check if user picked a valid option
+  if (!selector.value) return;
+
+  // Get the selected <option> element itself
+  const selectedOption = selector.options[selector.selectedIndex];
+
+  // Read the image source from .value
+  const selectedImageSrc = selectedOption.value;
+
+  // Read the caption from the data attribute
+  const selectedCaption = selectedOption.getAttribute('data-caption');
+
+  // Update the modal's <img> source
+  document.getElementById('modalImage').src = selectedImageSrc;
+
+  // Update the modal's caption text
+  document.querySelector('.caption').textContent = selectedCaption;
+
+  // Show the modal
+  document.getElementById('imageModal').style.display = 'flex';
+
+	selector.selectedIndex = 0;
+
+
+}
+
+function closeModal() {
+  document.getElementById('imageModal').style.display = 'none';
+}
