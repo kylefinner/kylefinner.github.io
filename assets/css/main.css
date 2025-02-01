@@ -3732,7 +3732,7 @@
 			left: 1.25em;
 			line-height: inherit;
 			margin: 0;
-			padding: 0;
+			padding: 1rem;
 			position: absolute;
 			top: 0;
 		}
@@ -4315,3 +4315,98 @@
 			}
 
 		}
+
+
+		/* Base Styles */
+	body {
+	  margin: 0;
+	  font-family: Arial, sans-serif;
+	  padding: 20px;
+	}
+
+	/* Headings */
+	h2 {
+	  margin-bottom: 10px;
+	}
+
+	.center-container {
+  text-align: center; /* Centers inline elements (like <select>) */
+  margin-top: 0px;   /* Optional: add some spacing from the top */
+	}
+
+	/* Make the dropdown's background transparent and width auto */
+	#imageSelector {
+	  background-color: transparent; /* Transparent background */
+	  /*border: 1px solid #666;       /* Optional: a subtle border so it's visible */
+	  color: #fff;                  /* Text color */
+	  font-size: 1rem;
+	  padding: 5px;
+	  margin-right: 10px;
+		border: none;
+
+	  /* Allow the width to size automatically */
+	  width: auto;
+	  min-width: 0;
+
+	  /* Make the <select> only as wide as needed */
+	  display: inline-block;
+	  white-space: nowrap; /* Keeps the text on one line */
+	  cursor: pointer;
+	}
+
+	/* Overlay covers the entire screen */
+	.modal-overlay {
+	  display: none; /* hidden by default */
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  background: rgba(0, 0, 0, 0.7); /* semi-transparent black overlay */
+	  justify-content: center;
+	  align-items: center;
+	  z-index: 9999; /* ensure the modal is on top */
+	}
+
+	/* The modal content box */
+	.modal-content {
+	  position: relative;
+	  background: #fefefe;
+	  border-radius: 0px;
+	  padding: 20px;
+	  text-align: center;
+	  max-width: 1000px; /* max width for popup */
+	  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+	}
+
+	/* Close button (text only) in top-right corner */
+	.close-btn {
+	  position: absolute;
+	  top: 10px;
+	  right: 15px;
+	  background: transparent;
+	  border: none;
+	  font-size: 1rem;
+	  cursor: pointer;
+	  color: #333;
+	  text-decoration: underline;
+	}
+
+	/* Displayed image inside the modal */
+	#modalImage {
+	  max-width: 100%;
+	  height: auto;
+	  border-radius: 4px;
+	}
+
+	/* Caption under the image */
+	.caption {
+	  margin-top: 10px;
+	  font-size: 1rem;
+	  color: #444;
+	}
+
+	#imageSelector:focus {
+  outline: none;              /* Removes the focus outline */
+  box-shadow: none;           /* Some browsers use box-shadow for focus */
+	}
