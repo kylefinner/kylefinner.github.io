@@ -9,7 +9,7 @@
 
 <url>
   <loc>https://kylefinner.github.io/</loc>
-  <lastmod>2020-08-08T07:08:22+00:00</lastmod>
+  <lastmod>2024-08-08T07:08:22+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
@@ -22,6 +22,13 @@
   <lastmod>2020-08-08T07:08:22+00:00</lastmod>
   <priority>0.80</priority>
 </url>
-
+<url>
+    <loc>https://kylefinner.github.io/</loc>
+    <image:image>
+      <image:loc>https://kylefinner.github.io/images/bullet_jwst.jpg</image:loc>
+      <image:title>James Webb Space Telescope (JWST) image of the bullet cluster</image:title>
+      <image:caption>Deep IR image of the bullet cluster from recent JWST imaging. The image shows strong lensing, intracluster light, and bright cluster galaxies.</image:caption>
+    </image:image>
+  </url>
 
 </urlset>
