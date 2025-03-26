@@ -23,6 +23,11 @@
   <priority>0.80</priority>
 </url>
 <url>
+  <loc>https://kylefinner.github.io/images/bullet-cluster-jwst.jpg</loc>
+  <lastmod>2025-03-15T05:00:43+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
     <loc>https://kylefinner.github.io/</loc>
     <image:image>
       <image:loc>https://kylefinner.github.io/images/bullet_jwst.jpg</image:loc>
