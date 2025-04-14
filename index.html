@@ -1,355 +1,467 @@
 <!DOCTYPE HTML>
 <!--
-	Hielo by TEMPLATED
-	templated.co @templatedco
-	Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
+  Hielo by TEMPLATED
+  templated.co @templatedco
+  Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
 -->
 <html>
-	<head>
-		<title>Dr. Kyle Finner</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="google-site-verification" content="Hp3EO3UYmvhJB4Y2jmU3P0ZAa4GV7GJjpHbK4E4amGk" />
-		<link rel="stylesheet" href="assets/css/main.css" />
-	</head>
-	<body>
+  <head>
+    <title>Dr. Kyle Finner</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- TEMPLATED and custom CSS -->
+    <link rel="stylesheet" href="assets/css/main.css" />
 
-		<!-- Header -->
-			<header id="header" class="alt">
-				<div class="logo"><a href="index.html">Kyle Finner</a></div>
-				<a href="#menu">Menu</a>
+    <!-- Inline style to display sub-project links in 3 columns -->
+    <style>
+      /* Make the projectLinks <ul> a flex container so that each <li>
+         can be displayed side by side. */
+      #projectLinks {
+        display: flex;
+        flex-wrap: wrap;     /* allow wrapping on small screens */
+        gap: 1rem;           /* space between items */
+        padding-left: 0;     /* remove default UL padding if you like */
+        justify-content: center; /* or space-between, etc. */
+      }
 
+      /* Each <li> tries to occupy ~1/3 of the row, wrapping as needed */
+      #projectLinks li {
+        list-style: none;
+        text-align: center;
+        flex: 1 1 calc(33% - 1rem);  /* 3 columns, minus the gap */
+        box-sizing: border-box;
+        min-width: 120px;            /* don't shrink too small */
+      }
 
-		<!-- Nav -->
-			<nav id="menu">
-				<ul class="links">
-					<li><a href="index.html">Home</a></li>
-					<li><a target="_blank" rel="noopener noreferrer" href='images/KFCV2022.pdf'>CV</a></li>
-					<li><a target="_blank" rel="noopener noreferrer" href="http://www.mergingclustercollaboration.org/">MC2</a></li>
-					<li><a target="_blank" rel="noopener noreferrer" href='images/bullet-cluster-jwst-webb.pdf'>Bullet Cluster</a></li>
-				</ul>
-			</nav>
-			</header>
+      /* Optional: on narrower screens, switch to 2 columns */
+      @media (max-width: 600px) {
+        #projectLinks li {
+          flex: 1 1 calc(50% - 1rem);
+        }
+      }
+    </style>
+  </head>
+  <body>
 
-			<!-- The semi-transparent overlay (initially hidden) -->
-		  <div class="modal-overlay" id="imageModal">
-		    <div class="modal-content">
-		      <!-- Close button (text) -->
-		      <button class="close-btn" onclick="closeModal()">x</button>
-		      <!-- Image to display in the modal -->
-		      <img id="modalImage" src="" alt="Selected Image">
-		      <!-- Optional caption under the image -->
-		      <p class="caption">My JWST mosaic image of the Bullet Cluster. I have stacked the IR images to create a vibrant image that highlights the strong-lensing images.</p>
-		    </div>
-		  </div>
-			<!--	<div id="bg"></div> -->
-		<!-- Banner -->
-			<section class="banner full">
-				<article>
-					<img src="images/photography-of-night-sky_lowres.jpg" alt="" />
-					<div class="inner">
-						<header>
-							<p>Dark Matter | Gravitational Lensing | Galaxy Clusters</p>
-							<h2>Kyle Finner</h2>
-							<h4><i>In search of the answers to questions unknown</i></h4>
-						</header>
-					</div>
-				</article>
-			</section>
+    <!-- Header (Optional) -->
+    <header id="header" class="alt">
+      <div class="logo"><a href="index.html">Kyle Finner</a></div>
+      <a href="#menu">Menu</a>
+    </header>
 
-			<!-- Two -->
-				<section id="two" class="wrapper style3">
-					<div class="inner">
-						<header class="align-center">
-							<p>I am a Staff Scientist at the California Institute of Technology / IPAC.</p>
-							<p> Primary Research Interests </p>
-								<ul>
-								<li>Developing and applying gravitational lensing techniques</li>
-								<li>Formation and evolution of the large-scale structure of the universe</li>
-								<li>Astrophysical processes of the intracluster medium</li>
-								<li>Telescope instrumentation </li>
-								</ul>
-						</header>
-					</div>
-				</section>
+    <!-- Nav (Optional) -->
+    <nav id="menu">
+      <ul class="links">
+        <li><a href="index.html">Home</a></li>
+        <li><a target="_blank" rel="noopener" href="images/KFCV2022.pdf">CV</a></li>
+        <li><a target="_blank" rel="noopener" href="http://www.mergingclustercollaboration.org/">MC2</a></li>
+        <li><a target="_blank" rel="noopener" href="images/bullet-cluster-jwst-webb.pdf">Bullet Cluster</a></li>
+      </ul>
+    </nav>
 
-				<!-- One -->
-					<section id="one" class="wrapper style2">
-						<header class="align-center">
-							<p class="special">Projects</p>
-						</header>
-						<br>
-						<div class="inner">
-							<div class="grid-style">
-								<div>
+    <!-- Example "Hero" or Banner Section (Optional) -->
+    <section class="banner full">
+      <article>
+        <img src="images/photography-of-night-sky_lowres.jpg" alt="" />
+        <div class="inner">
+          <header>
+            <p>Dark Matter | Gravitational Lensing | Galaxy Clusters</p>
+            <h2>Kyle Finner</h2>
+            <h4><i>In search of the answers to questions unknown</i></h4>
+          </header>
+        </div>
+      </article>
+    </section>
 
-									<div class="box">
-										<div class="image fit">
-											<img src="images/a1240.png" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Merging Galaxy Clusters</p>
-												<h2>Abell 1240</h2>
-											</header>
-											<p> A double radio relic cluster that is part of a vast filamentary structure. The weak-lensing mass distribution is detected for the A1240 merging cluster and its companion A1237.  </p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2109.06879" class="button alt">Cho et al. 2021</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+    <!-- About Me & Projects (two columns) -->
+    <section id="two" class="wrapper style3">
+      <div class="inner">
+        <div class="row uniform">
+          <!-- Column 1: About Me -->
+          <div class="6u 12u$(small)">
+            <header class="align-left">
+              <h2>About Me</h2>
+              I am an Astronomer at the California Institute of Technology / IPAC.<br>
+              My primary research interests are:
+                <li>Developing and applying gravitational lensing techniques</li>
+                <li>The properties of dark matter</li>
+                <li>Formation and evolution of the large-scale structure of the universe</li>
+                <li>Astrophysical processes of the intracluster medium</li>
+                <li>Telescope instrumentation</li>
+            </header>
+          </div>
 
-								<div>
+          <!-- Column 2: Projects (Dynamic) -->
+          <div class="6u 12u$(small)" id="projectsColumn">
+            <header class="align-left">
+              <h2>Projects</h2>
+              <!-- Default top-level links appear here -->
+              <ul id="projectLinks">
+                <li><a href="#" onclick="event.preventDefault(); loadCategory('merging');">Merging Clusters</a></li>
+                <li><a href="#" onclick="event.preventDefault(); loadCategory('distant');">Distant Clusters</a></li>
+              </ul>
+            </header>
+          </div>
+        </div><!-- .row.uniform -->
+      </div><!-- .inner -->
+    </section>
 
-									<div class="box">
-										<div class="image fit">
-											<img src="images/zwcl1447.png" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Merging Galaxy Clusters</p>
-												<h2>ZwCl 1447</h2>
-											</header>
-											<p> A radio and weak-lensing analysis of a high-z merging cluster. A radio relic with that is remarkably bow shaped and comparable to the Sausage cluster. Three subclusters are found with one that contains no X-ray counterpart.  </p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2109.00593" class="button alt">Lee et al. 2021</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+    <!-- SINGLE CLUSTER PANEL (Image Left, Text Right) -->
+    <section id="clusterDisplay" class="wrapper style2">
+      <div class="inner" id="clusterPanel" style="text-align:center;">
+        <!-- Initially empty; show a placeholder: -->
+        <p><em>Select a cluster from the right column to view its details.</em></p>
+      </div>
+    </section>
 
-								<div>
+    <!-- Footer (Optional) -->
+    <footer id="footer">
+      <div class="container">
+        <ul class="icons">
+          <!-- Social media icons or links, if desired -->
+        </ul>
+      </div>
+      <div class="copyright">
+        &copy; Kyle Finner. All rights reserved. | Hielo by TEMPLATED
+      </div>
+    </footer>
 
-									<div class="box">
-										<div class="image fit">
-											<img src="images/macsj1752_finner.png" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Merging Galaxy Clusters</p>
-												<h2>MACS J1752 and ZwCl 1856</h2>
-											</header>
-											<p> Merging galaxy clusters that exhibit double radio relics are rare, especially those with two comparably bright relics. This weak-lensing analysis presents the mass distributions of the most symmetric merging systems that we have studied. These are ideal for follow-up simulations.  </p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2010.02226" class="button alt">Finner et al. 2021</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+    <!-- TEMPLATED Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.scrollex.min.js"></script>
+    <script src="assets/js/skel.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
 
-								<div>
-									<div class="box">
-										<div class="image fit">
-											<img src="images/zwcl1856_jones.png" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Merging Galaxy Clusters</p>
-												<h2>ZwCl 1856</h2>
-											</header>
-											<p> A tremendous, symmetric merging galaxy cluster that consists of two subclusters of equal mass. Our analysis of LOFAR radio observations characterizes the unique radio features of a double relic cluster. </p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2105.11906" class="button alt">Jones et al. 2021</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+    <!-- Custom JavaScript for dynamic project panel -->
+    <script>
+      // 1) Store the default HTML for the "Projects" links so we can reset later.
+      const defaultLinksHTML = `
+        <li><a href="#" onclick="event.preventDefault(); loadCategory('merging');">Merging Clusters</a></li>
+        <li><a href="#" onclick="event.preventDefault(); loadCategory('distant');">Distant Clusters</a></li>
+      `;
 
-								<div>
-									<div class="box">
-										<div class="image fit">
-											<img src="images/a521_website.png" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Merging Galaxy Clusters</p>
-												<h2>Abell 521</h2>
-											</header>
-											<p> Abell 521 is a massive merging system with three subclusters. The radio relic is found to the southeast and likely formed from a past merger between the massive central cluster and the subcluster found in the southeast. </p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2006.13535" class="button alt">Yoon et al. 2020</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+      // 2) A data structure grouping clusters under two categories:
+      const projectsData = {
+        merging: [
+          { id: 'toothbrush', name: 'Toothbrush Cluster' },
+          { id: 'abell115', name: 'Abell 115' },
+          { id: 'abell521', name: 'Abell 521' },
+          { id: 'abell523', name: 'Abell 523' },
+          { id: 'abell746', name: 'Abell 746' },
+          { id: 'abell781', name: 'Abell 781' },
+          { id: 'abell1240', name: 'Abell 1240' },
+          { id: 'abell1300', name: 'Abell 1300' },
+          { id: 'abell1612', name: 'Abell 1612' },
+          { id: 'abell2034', name: 'Abell 2034' },
+          { id: 'abell2061', name: 'Abell 2061' },
+          { id: 'abell2163', name: 'Abell 2163' },
+          { id: 'abell2255', name: 'Abell 2255' },
+          { id: 'abell2345', name: 'Abell 2345' },
+          { id: 'abell2744', name: 'Abell 2744' },
+          { id: 'abell3411', name: 'Abell 3411' },
+          { id: 'macsj1149', name: 'MACS J1149' },
+          { id: 'macsj1752', name: 'MACS J1752' },
+          { id: 'plckg287', name: 'PLCK G287' },
+          { id: 'plckg108', name: 'PLCK G108' },
+          { id: 'rxcj1314', name: 'RXC J1314' },
+          { id: 'zwcl0008', name: 'ZwCl 0008' },
+          { id: 'zwcl1447', name: 'ZwCl 1447' },
+          { id: 'zwcl1856', name: 'ZwCl 1856' },
+          { id: 'zwcl2341', name: 'ZwCl 2341' },
+          { id: 'spt2023', name: 'SPT2023-5535' },
+          { id: 'mccollab', name: 'Merging Cluster Collaboration' },
+        ],
+        distant: [
+          { id: 'sparcs_xray', name: 'SpARCSJ1049+56 (X-ray)' },
+          { id: 'sparcs_wl',   name: 'SpARCSJ1049+56 (Weak Lensing)' }
+        ]
+      };
 
+      // 3) Detailed info for clusters that already have custom content
+      const clusterDetails = {
+        abell1240: {
+          title: 'Abell 1240',
+          image: 'images/abell1240_4pane_SN_auto.jpg',
+          alt: 'Abell 1240',
+          paragraph: `
+            A double radio relic cluster that is part of a vast filamentary structure.
+            The weak-lensing mass distribution is detected for the A1240 merging
+            cluster and its companion A1237.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/abs/2109.06879',
+              text: 'Cho et al. 2021'
+            }
+          ]
+        },
+        zwcl1447: {
+          title: 'ZwCl 1447',
+          image: 'images/zwcl1447.png',
+          alt: 'ZwCl 1447',
+          paragraph: `
+            A radio and weak-lensing analysis of a high-z merging cluster.
+            Its bow-shaped radio relic is comparable to the “Sausage” relic.
+            Three subclusters are found, one lacking an X-ray counterpart.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/abs/2109.00593',
+              text: 'Lee et al. 2021'
+            }
+          ]
+        },
+        macsj1752: {
+          title: 'MACS J1752 & ZwCl 1856',
+          image: 'images/macsj1752_finner.png',
+          alt: 'MACS J1752 & ZwCl 1856',
+          paragraph: `
+            Merging galaxy clusters that exhibit double radio relics are rare,
+            especially those with two comparably bright relics. This weak-lensing
+            analysis presents their mass distributions and symmetry.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/abs/2010.02226',
+              text: 'Finner et al. 2021'
+            }
+          ]
+        },
+        zwcl1856: {
+          title: 'ZwCl 1856',
+          image: 'images/zwcl1856_jones.png',
+          alt: 'ZwCl 1856',
+          paragraph: `
+            A symmetric merging galaxy cluster consisting of two subclusters of equal mass.
+            Radio observations highlight the unique double relic structure.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/abs/2105.11906',
+              text: 'Jones et al. 2021'
+            }
+          ]
+        },
+        abell521: {
+          title: 'Abell 521',
+          image: 'images/a521_website.png',
+          alt: 'Abell 521',
+          paragraph: `
+            Abell 521 is a massive merging system with three subclusters.
+            Its radio relic to the southeast likely formed from a past merger
+            between the central cluster and the southeastern subcluster.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/abs/2006.13535',
+              text: 'Yoon et al. 2020'
+            }
+          ]
+        },
+        spt2023: {
+          title: 'SPT2023-5535',
+          image: 'images/SPT2023.jpg',
+          alt: 'SPT2023-5535',
+          paragraph: `
+            Newly discovered in the EMU/ASKAP radio continuum survey.
+            Our weak-lensing analysis mapped its dark matter distribution.
+            Likely in an early evolutionary stage just after pericenter passage.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/pdf/2007.08244.pdf',
+              text: 'HyeongHan et al. 2020'
+            }
+          ]
+        },
+        abell115: {
+          title: 'Abell 115',
+          image: 'images/a115_xray_wl.jpg',
+          alt: 'Abell 115',
+          paragraph: `
+            This cluster’s intracluster medium shows gas stripping in both subclusters.
+            Weak-lensing mass peaks align nicely with their respective cores.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/abs/1812.08797',
+              text: 'Kim et al. 2019'
+            }
+          ]
+        },
+        mccollab: {
+          title: 'Merging Cluster Collaboration',
+          image: 'images/golovich2019.png',
+          alt: 'Merging Cluster Collaboration',
+          paragraph: `
+            We study a sample of radio relic merging clusters to uncover
+            the properties of dark matter, intracluster gas, and particle acceleration.
+            Colliding clusters provide unique insights into cosmic evolution.
+          `,
+          references: [
+            {
+              url: 'https://iopscience.iop.org/article/10.3847/1538-4365/aaf88b',
+              text: 'Golovich et al. 2019'
+            }
+          ]
+        },
+        plck287: {
+          title: 'PLCKG287.0+32.9',
+          image: 'images/plck287.png',
+          alt: 'PLCKG287.0+32.9',
+          paragraph: `
+            Dominated by a massive primary cluster and smaller companions.
+            Unusual for hosting two radio relics at vastly different distances
+            from the center.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/abs/1710.02527',
+              text: 'Finner et al. 2017'
+            }
+          ]
+        },
+        sparcs_xray: {
+          title: 'SpARCSJ1049+56 (X-ray)',
+          image: 'images/sparcs_xray.png',
+          alt: 'SpARCSJ1049+56 X-ray',
+          paragraph: `
+            Evidence for a cooling flow revealed by Chandra X-ray observations.
+            The cool gas coincides with a burst of star formation, an exciting
+            find for an emerging galaxy cluster.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/pdf/2007.15660.pdf',
+              text: 'Hlavacek-Larrondo et al. 2020'
+            }
+          ]
+        },
+        sparcs_wl: {
+          title: 'SpARCSJ1049+56 (Weak Lensing)',
+          image: 'images/sparcs1049_wl.jpg',
+          alt: 'SpARCSJ1049+56 WL',
+          paragraph: `
+            Detecting weak lensing at high redshift is challenging.
+            Thanks to deep HST infrared imaging, we confirmed the weak-lensing signal
+            in this young galaxy cluster.
+          `,
+          references: [
+            {
+              url: 'https://arxiv.org/abs/2002.01956',
+              text: 'Finner et al. 2020'
+            }
+          ]
+        }
+      };
 
-								<div>
-									<div class="box">
-										<div class="image fit">
-											<img src="images/sparcs_xray.png" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Distant Galaxy Clusters</p>
-												<h2>SpARCSJ1049+56</h2>
-											</header>
-											<p> We have discovered evidence for a cooling flow in SpARCS1049 in Chandra X-ray observations. The cool gas that we detected coincides with the previously detected (Webb et al. 2015/2017) burst of star formation. This is an exciting find for an emerging galaxy cluster.  </p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/pdf/2007.15660.pdf" class="button alt">Hlavacek-Larrondo et al. 2020</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+      // -- Add default content for clusters missing from clusterDetails --
+      Object.keys(projectsData).forEach(category => {
+        projectsData[category].forEach(({ id, name }) => {
+          if (!clusterDetails[id]) {
+            clusterDetails[id] = {
+              title: name,
+              image: `images/${id}_4pane_SN_auto.jpg`,
+              alt: name,
+              paragraph: `This is the ${name}.`,
+              references: []
+            };
+          }
+        });
+      });
 
-								<div>
-									<div class="box">
-										<div class="image fit">
-											<img src="images/SPT2023.jpg" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Merging Clusters</p>
-												<h2>SPT2023-5535</h2>
-											</header>
-											<p> A new radio relic cluster was detected in the EMU/ASKAP radio continuum survey. We detected its weak-lensing signal and mapped its dark matter distribution. This merging cluster appears to be in an early evolutionary stage, seen just after pericent passage.</p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/pdf/2007.08244.pdf" class="button alt">HyeongHan et al. 2020</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+      // -- For all "abell" clusters, add Finner et al. 2025 reference --
+      //    We check if the ID includes "abell" (case-insensitive).
+      //    Then push the new reference into the references array.
+      Object.keys(clusterDetails).forEach((id) => {
+        if (id.toLowerCase().includes('abell')) {
+          clusterDetails[id].references.push({
+            url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract',
+            text: 'Finner et al. 2025'
+          });
+        }
+      });
 
-								<div>
-									<div class="box">
-										<div class="image fit">
-											<img src="images/sparcs1049_wl.jpg" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Distant Galaxy Clusters</p>
-												<h2>SpARCSJ1049+56</h2>
-											</header>
-											<p> Detecting weak gravitational lensing relies on a good sample of galaxies located beyond the galaxy cluster of interest. This fact makes high redshift lensing difficult and expensive. With deep Hubble Space Telescope infrared imaging, we were able to detect the weak-lensing signal from a galaxy cluster in the early universe. </p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/2002.01956" class="button alt">Finner et al. 2020</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+      // 5) Reset the Projects column back to default top-level links
+      function resetProjects() {
+        document.getElementById('projectLinks').innerHTML = defaultLinksHTML;
+      }
 
-								<div>
-									<div class="box">
-										<div class="image fit">
-											<img src="images/a115_xray_wl.jpg" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Merging Galaxy Clusters</p>
-												<h2>Abell 115</h2>
-											</header>
-											<p> This merging cluster is highlighted by its intriguing intracluster medium morphology. Both subclusters show signs of gas stripping. Our weak-lensing analysis showed a tremendous agreement between the mass peaks and the cores of each subclusters intracluster medium.</p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/1812.08797" class="button alt">Kim et al. 2019</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+      // 6) Load the sub-project links when user clicks "Merging Clusters" or "Distant Clusters"
+      //    We do event.preventDefault() so the page doesn't jump.
+      function loadCategory(category) {
+        const listEl = document.getElementById('projectLinks');
+        // Clear the current links
+        listEl.innerHTML = '';
 
-								<div>
-									<div class="box">
-										<div class="image fit">
-											<img src="images/golovich2019.png" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Merging Galaxy Clusters</p>
-												<h2>Merging Cluster Collaboration</h2>
-											</header>
-											<p> As massive deposits of dark matter, gas, and stars, galaxy clusters are rich with interesting physics. What could be better? How about colliding galaxy clusters together at immense velocities. The Merging Cluster Collaboration is studying a sample of radio relic merging clusters. We are investigating a number of unique features that are enabled by colliding clusters such as properties of dark matter and charged particle acceleration.</p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://iopscience.iop.org/article/10.3847/1538-4365/aaf88b" class="button alt">Golovich et al. 2019</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+        if (projectsData[category]) {
+          // Create an <li> for each cluster in that category
+          projectsData[category].forEach(proj => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            // Using '#' but preventing default scroll
+            a.href = '#';
+            a.textContent = proj.name;
+            a.onclick = (e) => {
+              e.preventDefault();
+              showCluster(proj.id);
+            };
+            li.appendChild(a);
+            listEl.appendChild(li);
+          });
 
-								<div>
-									<div class="box">
-										<div class="image fit">
-											<img src="images/plck287.png" alt="" />
-										</div>
-										<div class="content">
-											<header class="align-center">
-												<p>Merging Galaxy Clusters</p>
-												<h2>PLCKG287.0+32.9</h2>
-											</header>
-											<p> PLCKG287 is dominated by a massive primary cluster with a number of smaller companions. It is a very unique radio relic cluster with two radio relics at vastly different distances from the center. </p>
-											<footer class="align-center">
-												<a target="_blank" rel="noopener noreferrer" href="https://arxiv.org/abs/1710.02527" class="button alt">Finner et al. 2017</a>
-											</footer>
-										</div>
-									</div>
-								</div>
+          // Add a "Back to Main Projects" link at the bottom
+          const backLi = document.createElement('li');
+          const backA = document.createElement('a');
+          backA.href = '#';
+          backA.textContent = 'Back to Main Projects';
+          backA.onclick = (e) => {
+            e.preventDefault();
+            resetProjects();
+          };
+          backLi.appendChild(backA);
+          listEl.appendChild(backLi);
+        }
+      }
 
+      // 7) Show a single cluster's data in the bottom #clusterPanel
+      //    We'll place the image on the LEFT and the text on the RIGHT using Flexbox.
+      function showCluster(clusterID) {
+        const cluster = clusterDetails[clusterID];
+        if (!cluster) return;
 
+        // Build some HTML for the selected cluster
+        const htmlContent = `
+          <div class="box"
+               style="margin:auto; max-width:900px; display:flex; flex-wrap:wrap; gap:1.5rem; align-items:center; justify-content:center;">
 
+            <!-- Image on the left -->
+            <div style="flex:1; min-width:280px;">
+              <img src="${cluster.image}" alt="${cluster.alt}" style="width:100%; height:auto;" />
+            </div>
 
-							</div>
-						</div>
-					</section>
+            <!-- Text on the right -->
+            <div style="flex:1; min-width:280px; text-align:left;">
+              <header>
+                <h3>${cluster.title}</h3>
+              </header>
+              <p>${cluster.paragraph}</p>
+              <footer>
+                ${
+                  cluster.references.map(ref =>
+                    `<a target="_blank" rel="noopener noreferrer" href="${ref.url}" class="button alt">${ref.text}</a>`
+                  ).join(' ')
+                }
+              </footer>
+            </div>
 
+          </div>
+        `;
 
-
-
-
-		 <!-- Three
- 			<section id="three" class="wrapper style2">
- 				<div class="inner">
- 					<header class="align-center">
- 						<p class="special">Projects</h1>
- 					</header>
- 					<div class="gallery">
- 						<div>
- 							<div class="image fit">
- 								<a href="#"><img src="images/plck287.png" alt="" /></a>
- 							</div>
- 						</div>
- 						<div>
- 							<div class="image fit">
- 								<a href="#"><img src="images/sparcs1049_wl.jpg" alt="" /></a>
- 							</div>
- 						</div>
- 						<div>
- 							<div class="image fit">
- 								<a href="#"><img src="images/a115_xray_wl.jpg" alt="" /></a>
- 							</div>
- 						</div>
- 						<div>
- 							<div class="image fit">
- 								<a href="#"><img src="images/pic04.jpg" alt="" /></a>
- 							</div>
- 						</div>
- 					</div>
- 				</div>
- 			</section>
-		-->
-
-
-
-
-
-		<!-- Footer -->
-			<footer id="footer">
-				<div class="container">
-					<ul class="icons">
-
-					</ul>
-				</div>
-				<div class="copyright">
-					&copy; Kyle Finner. All rights reserved.
-
-					Hielo by TEMPLATED
-				</div>
-			</footer>
-
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/jquery.scrollex.min.js"></script>
-			<script src="assets/js/skel.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js"></script>
-
-	</body>
+        // Inject into #clusterPanel
+        document.getElementById('clusterPanel').innerHTML = htmlContent;
+      }
+    </script>
+  </body>
 </html>
