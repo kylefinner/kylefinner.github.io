@@ -1,0 +1,52 @@
+SIMPLE  =                    T / This is a FITS file                            
+BITPIX  =                  -32 /                                                
+NAXIS   =                    2 /                                                
+NAXIS1  =                11566 / Number of pixels along this axis               
+NAXIS2  =                 9176 / Number of pixels along this axis               
+EXTEND  =                    T / This file may contain FITS extensions          
+EQUINOX =   2.000000000000E+03 / Mean equinox                                   
+MJD-OBS =   5.219600000000E+04 / Modified Julian date at start                  
+RADESYS = 'ICRS    '           / Astrometric system                             
+CTYPE1  = 'RA---TAN'           / WCS projection type for this axis              
+CUNIT1  = 'degree  '           / Axis unit                                      
+CRVAL1  =   7.354437161422E+01 / World coordinate on this axis                  
+CRPIX1  =   5.783500000000E+03 / Reference pixel on this axis                   
+CD1_1   =  -5.609422441921E-05 / Linear projection matrix                       
+CD1_2   =   0.000000000000E+00 / Linear projection matrix                       
+CTYPE2  = 'DEC--TAN'           / WCS projection type for this axis              
+CUNIT2  = 'degree  '           / Axis unit                                      
+CRVAL2  =  -1.025201722150E+01 / World coordinate on this axis                  
+CRPIX2  =   4.588500000000E+03 / Reference pixel on this axis                   
+CD2_1   =   0.000000000000E+00 / Linear projection matrix                       
+CD2_2   =   5.609422441921E-05 / Linear projection matrix                       
+EXPTIME =   0.000000000000E+00 / Maximum equivalent exposure time (s)           
+GAIN    =   3.828554646312E+00 / Maximum equivalent gain (e-/ADU)               
+SATURATE=   4.390294496501E+04 / Saturation Level (ADU)                         
+COMMENT                                                                         
+SOFTNAME= 'SWarp   '           / The software that processed those data         
+SOFTVERS= '2.38.0  '           / Version of the software                        
+SOFTDATE= '2019-10-20'         / Release date of the software                   
+SOFTAUTH= '2010-2012 IAP/CNRS/UPMC' / Maintainer of the software                
+SOFTINST= 'IAP  http://www.iap.fr' / Institute                                  
+COMMENT                                                                         
+AUTHOR  = 'kylefinner'         / Who ran the software                           
+ORIGIN  = 'snowqueens-Mac-Pro.local' / Where it was done                        
+DATE    = '2019-12-12T07:24:08' / When it was started (GMT)                     
+COMBINET= 'WEIGHTED'           / COMBINE_TYPE config parameter for SWarp        
+COMMENT                                                                         
+COMMENT  Propagated FITS keywords                                               
+OBJECT  = 'A521    '           / Identification of object observed              
+COMMENT                                                                         
+COMMENT  Axis-dependent config parameters                                       
+RESAMPT1= 'LANCZOS3'           / RESAMPLING_TYPE config parameter               
+CENTERT1= 'ALL     '           / CENTER_TYPE config parameter                   
+PSCALET1= 'MEDIAN  '           / PIXELSCALE_TYPE config parameter               
+RESAMPT2= 'LANCZOS3'           / RESAMPLING_TYPE config parameter               
+CENTERT2= 'ALL     '           / CENTER_TYPE config parameter                   
+PSCALET2= 'MEDIAN  '           / PIXELSCALE_TYPE config parameter               
+COMMENT                                                                         
+COMMENT                                                                         
+COMMENT                                                                         
+COMMENT  Propagated FITS keywords                                               
+COMMENT                                                                         
+COMMENT  Axis-dependent config parameters                                       

@@ -40,6 +40,11 @@
         }
       }
     </style>
+    <style>
+      .cluster-col   { flex: 1; min-width: 260px; }
+      .cluster-links a { display:block; margin:0.3em 0; }
+    </style>
+
   </head>
   <body>
 
@@ -92,16 +97,21 @@
           </div>
 
           <!-- Column 2: Projects (Dynamic) -->
-          <div class="6u 12u$(small)" id="projectsColumn">
-            <header class="align-left">
-              <h2>Projects</h2>
-              <!-- Default top-level links appear here -->
-              <ul id="projectLinks">
-                <li><a href="#" onclick="event.preventDefault(); loadCategory('merging');">Merging Clusters</a></li>
-                <li><a href="#" onclick="event.preventDefault(); loadCategory('distant');">Distant Clusters</a></li>
-              </ul>
-            </header>
-          </div>
+					<div class="6u 12u$(small)" id="projectsColumn">
+					  <header class="align-left" style="position: relative;">
+					    <h2>Projects</h2>
+
+					    <!-- Right-aligned link container -->
+					    <div id="backLink" style="float: right; margin-top: -2em;">
+					      <!-- Initially hidden or empty; we show it in loadCategory if needed -->
+					    </div>
+
+					    <ul id="projectLinks">
+					      <li><a href="#" onclick="event.preventDefault(); loadCategory('merging');">Merging Clusters</a></li>
+					      <li><a href="#" onclick="event.preventDefault(); loadCategory('distant');">Distant Clusters</a></li>
+					    </ul>
+					  </header>
+					</div>
         </div><!-- .row.uniform -->
       </div><!-- .inner -->
     </section>
@@ -134,334 +144,180 @@
     <script src="assets/js/main.js"></script>
 
     <!-- Custom JavaScript for dynamic project panel -->
-    <script>
-      // 1) Store the default HTML for the "Projects" links so we can reset later.
-      const defaultLinksHTML = `
-        <li><a href="#" onclick="event.preventDefault(); loadCategory('merging');">Merging Clusters</a></li>
-        <li><a href="#" onclick="event.preventDefault(); loadCategory('distant');">Distant Clusters</a></li>
-      `;
+    <!-- ▸ BEGIN FULL <script> BLOCK ◂ -->
+<script>
+  /* ─────────────────────────────────────────────────────────────
+     0) CONSTANTS
+     ───────────────────────────────────────────────────────────── */
+  /* Root URL of the shared Box folder that holds all cluster files */
+  const boxBase = 'https://caltech.box.com/shared/static/soy3ftcvpyrxh8tv0mpqka8ubpc59665';
 
-      // 2) A data structure grouping clusters under two categories:
-      const projectsData = {
-        merging: [
-          { id: 'toothbrush', name: 'Toothbrush Cluster' },
-          { id: 'abell115', name: 'Abell 115' },
-          { id: 'abell521', name: 'Abell 521' },
-          { id: 'abell523', name: 'Abell 523' },
-          { id: 'abell746', name: 'Abell 746' },
-          { id: 'abell781', name: 'Abell 781' },
-          { id: 'abell1240', name: 'Abell 1240' },
-          { id: 'abell1300', name: 'Abell 1300' },
-          { id: 'abell1612', name: 'Abell 1612' },
-          { id: 'abell2034', name: 'Abell 2034' },
-          { id: 'abell2061', name: 'Abell 2061' },
-          { id: 'abell2163', name: 'Abell 2163' },
-          { id: 'abell2255', name: 'Abell 2255' },
-          { id: 'abell2345', name: 'Abell 2345' },
-          { id: 'abell2744', name: 'Abell 2744' },
-          { id: 'abell3411', name: 'Abell 3411' },
-          { id: 'macsj1149', name: 'MACS J1149' },
-          { id: 'macsj1752', name: 'MACS J1752' },
-          { id: 'plckg287', name: 'PLCK G287' },
-          { id: 'plckg108', name: 'PLCK G108' },
-          { id: 'rxcj1314', name: 'RXC J1314' },
-          { id: 'zwcl0008', name: 'ZwCl 0008' },
-          { id: 'zwcl1447', name: 'ZwCl 1447' },
-          { id: 'zwcl1856', name: 'ZwCl 1856' },
-          { id: 'zwcl2341', name: 'ZwCl 2341' },
-          { id: 'spt2023', name: 'SPT2023-5535' },
-          { id: 'mccollab', name: 'Merging Cluster Collaboration' },
-        ],
-        distant: [
-          { id: 'sparcs_xray', name: 'SpARCSJ1049+56 (X-ray)' },
-          { id: 'sparcs_wl',   name: 'SpARCSJ1049+56 (Weak Lensing)' }
-        ]
+  /* HTML for the two top-level project links (reset state) */
+  const defaultLinksHTML = `
+    <li><a href="#" onclick="event.preventDefault(); loadCategory('merging');">Merging Clusters</a></li>
+    <li><a href="#" onclick="event.preventDefault(); loadCategory('distant');">Distant Clusters</a></li>
+  `;
+
+  /* ─────────────────────────────────────────────────────────────
+     1) DATA  (projectsData & clusterDetails)
+     ───────────────────────────────────────────────────────────── */
+  /* projectsData lists every cluster ID and display name */
+  const projectsData = {
+    merging: [
+      { id: 'toothbrush',  name: 'Toothbrush Cluster' },
+      { id: 'abell115',    name: 'Abell 115' },
+      { id: 'abell521',    name: 'Abell 521' },
+      { id: 'abell523',    name: 'Abell 523' },
+      { id: 'abell746',    name: 'Abell 746' },
+      { id: 'abell781',    name: 'Abell 781' },
+      { id: 'abell1240',   name: 'Abell 1240' },
+      { id: 'abell1300',   name: 'Abell 1300' },
+      { id: 'abell1612',   name: 'Abell 1612' },
+      { id: 'abell2034',   name: 'Abell 2034' },
+      { id: 'abell2061',   name: 'Abell 2061' },
+      { id: 'abell2163',   name: 'Abell 2163' },
+      { id: 'abell2255',   name: 'Abell 2255' },
+      { id: 'abell2345',   name: 'Abell 2345' },
+      { id: 'abell2744',   name: 'Abell 2744' },
+      { id: 'abell3411',   name: 'Abell 3411' },
+      { id: 'macsj1149',   name: 'MACS J1149' },
+      { id: 'macsj1752',   name: 'MACS J1752' },
+      { id: 'plckg287',    name: 'PLCK G287' },
+      { id: 'plckg108',    name: 'PLCK G108' },
+      { id: 'rxcj1314',    name: 'RXC J1314' },
+      { id: 'zwcl0008',    name: 'ZwCl 0008' },
+      { id: 'zwcl1447',    name: 'ZwCl 1447' },
+      { id: 'zwcl1856',    name: 'ZwCl 1856' },
+      { id: 'zwcl2341',    name: 'ZwCl 2341' },
+      { id: 'spt2023',     name: 'SPT2023-5535' },
+      { id: 'mccollab',    name: 'Merging Cluster Collaboration' },
+    ],
+    distant: [
+      { id: 'sparcs_xray', name: 'SpARCS J1049+56 (X-ray)' },
+      { id: 'sparcs_wl',   name: 'SpARCS J1049+56 (Weak Lensing)' }
+    ]
+  };
+
+  /* clusterDetails contains rich data for clusters you’ve already
+     customized.  For brevity, only Abell 1240 is shown here—you can
+     keep all your existing entries.  The script adds defaults for
+     any IDs not present.                                         */
+  const clusterDetails = {
+    abell1240: {
+      title: 'Abell 1240',
+      image: 'images/abell1240_4pane_SN_auto.jpg',
+      alt:   'Abell 1240',
+      paragraph: `
+        A double radio relic cluster that is part of a vast filamentary structure.
+        The weak-lensing mass distribution is detected for Abell 1240 and its companion A1237.
+      `,
+      references: [
+        { url: 'https://arxiv.org/abs/2109.06879', text: 'Cho et al. 2021' }
+      ]
+    }
+    /* … keep your other custom clusters here … */
+  };
+
+  /* ─────────────────────────────────────────────────────────────
+     2)  FILL IN DEFAULT INFO FOR ANY CLUSTER MISSING DETAILS
+     ───────────────────────────────────────────────────────────── */
+  Object.values(projectsData).flat().forEach(({ id, name }) => {
+    if (!clusterDetails[id]) {
+      clusterDetails[id] = {
+        title: name,
+        image: `images/${id}_4pane_SN_auto.jpg`,
+        alt:   name,
+        paragraph: `Two-sentence placeholder summary for ${name}.`,
+        references: []
       };
+    }
+  });
 
-      // 3) Detailed info for clusters that already have custom content
-      const clusterDetails = {
-        abell1240: {
-          title: 'Abell 1240',
-          image: 'images/abell1240_4pane_SN_auto.jpg',
-          alt: 'Abell 1240',
-          paragraph: `
-            A double radio relic cluster that is part of a vast filamentary structure.
-            The weak-lensing mass distribution is detected for the A1240 merging
-            cluster and its companion A1237.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/abs/2109.06879',
-              text: 'Cho et al. 2021'
-            }
-          ]
-        },
-        zwcl1447: {
-          title: 'ZwCl 1447',
-          image: 'images/zwcl1447.png',
-          alt: 'ZwCl 1447',
-          paragraph: `
-            A radio and weak-lensing analysis of a high-z merging cluster.
-            Its bow-shaped radio relic is comparable to the “Sausage” relic.
-            Three subclusters are found, one lacking an X-ray counterpart.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/abs/2109.00593',
-              text: 'Lee et al. 2021'
-            }
-          ]
-        },
-        macsj1752: {
-          title: 'MACS J1752 & ZwCl 1856',
-          image: 'images/macsj1752_finner.png',
-          alt: 'MACS J1752 & ZwCl 1856',
-          paragraph: `
-            Merging galaxy clusters that exhibit double radio relics are rare,
-            especially those with two comparably bright relics. This weak-lensing
-            analysis presents their mass distributions and symmetry.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/abs/2010.02226',
-              text: 'Finner et al. 2021'
-            }
-          ]
-        },
-        zwcl1856: {
-          title: 'ZwCl 1856',
-          image: 'images/zwcl1856_jones.png',
-          alt: 'ZwCl 1856',
-          paragraph: `
-            A symmetric merging galaxy cluster consisting of two subclusters of equal mass.
-            Radio observations highlight the unique double relic structure.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/abs/2105.11906',
-              text: 'Jones et al. 2021'
-            }
-          ]
-        },
-        abell521: {
-          title: 'Abell 521',
-          image: 'images/a521_website.png',
-          alt: 'Abell 521',
-          paragraph: `
-            Abell 521 is a massive merging system with three subclusters.
-            Its radio relic to the southeast likely formed from a past merger
-            between the central cluster and the southeastern subcluster.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/abs/2006.13535',
-              text: 'Yoon et al. 2020'
-            }
-          ]
-        },
-        spt2023: {
-          title: 'SPT2023-5535',
-          image: 'images/SPT2023.jpg',
-          alt: 'SPT2023-5535',
-          paragraph: `
-            Newly discovered in the EMU/ASKAP radio continuum survey.
-            Our weak-lensing analysis mapped its dark matter distribution.
-            Likely in an early evolutionary stage just after pericenter passage.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/pdf/2007.08244.pdf',
-              text: 'HyeongHan et al. 2020'
-            }
-          ]
-        },
-        abell115: {
-          title: 'Abell 115',
-          image: 'images/a115_xray_wl.jpg',
-          alt: 'Abell 115',
-          paragraph: `
-            This cluster’s intracluster medium shows gas stripping in both subclusters.
-            Weak-lensing mass peaks align nicely with their respective cores.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/abs/1812.08797',
-              text: 'Kim et al. 2019'
-            }
-          ]
-        },
-        mccollab: {
-          title: 'Merging Cluster Collaboration',
-          image: 'images/golovich2019.png',
-          alt: 'Merging Cluster Collaboration',
-          paragraph: `
-            We study a sample of radio relic merging clusters to uncover
-            the properties of dark matter, intracluster gas, and particle acceleration.
-            Colliding clusters provide unique insights into cosmic evolution.
-          `,
-          references: [
-            {
-              url: 'https://iopscience.iop.org/article/10.3847/1538-4365/aaf88b',
-              text: 'Golovich et al. 2019'
-            }
-          ]
-        },
-        plck287: {
-          title: 'PLCKG287.0+32.9',
-          image: 'images/plck287.png',
-          alt: 'PLCKG287.0+32.9',
-          paragraph: `
-            Dominated by a massive primary cluster and smaller companions.
-            Unusual for hosting two radio relics at vastly different distances
-            from the center.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/abs/1710.02527',
-              text: 'Finner et al. 2017'
-            }
-          ]
-        },
-        sparcs_xray: {
-          title: 'SpARCSJ1049+56 (X-ray)',
-          image: 'images/sparcs_xray.png',
-          alt: 'SpARCSJ1049+56 X-ray',
-          paragraph: `
-            Evidence for a cooling flow revealed by Chandra X-ray observations.
-            The cool gas coincides with a burst of star formation, an exciting
-            find for an emerging galaxy cluster.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/pdf/2007.15660.pdf',
-              text: 'Hlavacek-Larrondo et al. 2020'
-            }
-          ]
-        },
-        sparcs_wl: {
-          title: 'SpARCSJ1049+56 (Weak Lensing)',
-          image: 'images/sparcs1049_wl.jpg',
-          alt: 'SpARCSJ1049+56 WL',
-          paragraph: `
-            Detecting weak lensing at high redshift is challenging.
-            Thanks to deep HST infrared imaging, we confirmed the weak-lensing signal
-            in this young galaxy cluster.
-          `,
-          references: [
-            {
-              url: 'https://arxiv.org/abs/2002.01956',
-              text: 'Finner et al. 2020'
-            }
-          ]
-        }
-      };
-
-      // -- Add default content for clusters missing from clusterDetails --
-      Object.keys(projectsData).forEach(category => {
-        projectsData[category].forEach(({ id, name }) => {
-          if (!clusterDetails[id]) {
-            clusterDetails[id] = {
-              title: name,
-              image: `images/${id}_4pane_SN_auto.jpg`,
-              alt: name,
-              paragraph: `This is the ${name}.`,
-              references: []
-            };
-          }
-        });
+  /* ─────────────────────────────────────────────────────────────
+     3)  ADD “Finner et al. 2025” REFERENCE TO ALL ABELL CLUSTERS
+     ───────────────────────────────────────────────────────────── */
+  Object.keys(clusterDetails).forEach(id => {
+    if (id.toLowerCase().includes('abell')) {
+      clusterDetails[id].references.push({
+        url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract',
+        text: 'Finner et al. 2025'
       });
+    }
+  });
 
-      // -- For all "abell" clusters, add Finner et al. 2025 reference --
-      //    We check if the ID includes "abell" (case-insensitive).
-      //    Then push the new reference into the references array.
-      Object.keys(clusterDetails).forEach((id) => {
-        if (id.toLowerCase().includes('abell')) {
-          clusterDetails[id].references.push({
-            url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract',
-            text: 'Finner et al. 2025'
-          });
-        }
-      });
+  /* ─────────────────────────────────────────────────────────────
+     4)  VIEW-LOGIC  (reset, loadCategory, showCluster)
+     ───────────────────────────────────────────────────────────── */
+  function resetProjects() {
+    document.getElementById('projectLinks').innerHTML = defaultLinksHTML;
+    document.getElementById('backLinkFlex').style.display = 'none';
+  }
 
-      // 5) Reset the Projects column back to default top-level links
-      function resetProjects() {
-        document.getElementById('projectLinks').innerHTML = defaultLinksHTML;
-      }
+  function loadCategory(category) {
+    const ul = document.getElementById('projectLinks');
+    ul.innerHTML = '';
 
-      // 6) Load the sub-project links when user clicks "Merging Clusters" or "Distant Clusters"
-      //    We do event.preventDefault() so the page doesn't jump.
-      function loadCategory(category) {
-        const listEl = document.getElementById('projectLinks');
-        // Clear the current links
-        listEl.innerHTML = '';
+    projectsData[category].forEach(({ id, name }) => {
+      const li = document.createElement('li');
+      const a  = document.createElement('a');
+      a.href   = '#';
+      a.textContent = name;
+      a.onclick = e => { e.preventDefault(); showCluster(id); };
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
 
-        if (projectsData[category]) {
-          // Create an <li> for each cluster in that category
-          projectsData[category].forEach(proj => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            // Using '#' but preventing default scroll
-            a.href = '#';
-            a.textContent = proj.name;
-            a.onclick = (e) => {
-              e.preventDefault();
-              showCluster(proj.id);
-            };
-            li.appendChild(a);
-            listEl.appendChild(li);
-          });
+    /* show the right-aligned “Back” link */
+    document.getElementById('backLinkFlex').style.display = 'inline';
+  }
 
-          // Add a "Back to Main Projects" link at the bottom
-          const backLi = document.createElement('li');
-          const backA = document.createElement('a');
-          backA.href = '#';
-          backA.textContent = 'Back to Main Projects';
-          backA.onclick = (e) => {
-            e.preventDefault();
-            resetProjects();
-          };
-          backLi.appendChild(backA);
-          listEl.appendChild(backLi);
-        }
-      }
+  function showCluster(id) {
+  const c = clusterDetails[id];
+  if (!c) return;
 
-      // 7) Show a single cluster's data in the bottom #clusterPanel
-      //    We'll place the image on the LEFT and the text on the RIGHT using Flexbox.
-      function showCluster(clusterID) {
-        const cluster = clusterDetails[clusterID];
-        if (!cluster) return;
+  /* local data-file links */
+  const dataLinksHTML = `
+    <h4>Cluster WL Data</h4>
+    <div class="cluster-links">
+      <a target="_blank" href="Merging_Clusters/${id}_color.jpg">Download the color jpg.</a>
+      <a target="_blank" href="Merging_Clusters/${id}.head">Download the wcs .head file.</a>
+      <a target="_blank" href="Merging_Clusters/${id}_WL_SN.fits">Download the mass map.</a>
+    </div>
+  `;
 
-        // Build some HTML for the selected cluster
-        const htmlContent = `
-          <div class="box"
-               style="margin:auto; max-width:900px; display:flex; flex-wrap:wrap; gap:1.5rem; align-items:center; justify-content:center;">
+  /* literature buttons */
+  const refButtons = c.references
+    .map(r => `<a class="button alt" target="_blank" href="${r.url}">${r.text}</a>`)
+    .join(' ');
 
-            <!-- Image on the left -->
-            <div style="flex:1; min-width:280px;">
-              <img src="${cluster.image}" alt="${cluster.alt}" style="width:100%; height:auto;" />
-            </div>
+  /* 3-column flexbox */
+  const panelHTML = `
+    <div class="box"
+         style="margin:auto;max-width:1100px;display:flex;flex-wrap:wrap;gap:1.5rem;">
+      <!-- Column 1 — image -->
+      <div class="cluster-col">
+        <img src="${c.image}" alt="${c.alt}" style="width:100%;height:auto;">
+      </div>
 
-            <!-- Text on the right -->
-            <div style="flex:1; min-width:280px; text-align:left;">
-              <header>
-                <h3>${cluster.title}</h3>
-              </header>
-              <p>${cluster.paragraph}</p>
-              <footer>
-                ${
-                  cluster.references.map(ref =>
-                    `<a target="_blank" rel="noopener noreferrer" href="${ref.url}" class="button alt">${ref.text}</a>`
-                  ).join(' ')
-                }
-              </footer>
-            </div>
+      <!-- Column 2 — text + literature refs -->
+      <div class="cluster-col" style="text-align:left;">
+        <h3>${c.title}</h3>
+        <p>${c.paragraph}</p>
+        <footer style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;">${refButtons}</footer>
+      </div>
 
-          </div>
-        `;
+      <!-- Column 3 — WL data links -->
+      <div class="cluster-col" style="text-align:left;">
+        ${dataLinksHTML}
+      </div>
+    </div>
+  `;
 
-        // Inject into #clusterPanel
-        document.getElementById('clusterPanel').innerHTML = htmlContent;
-      }
-    </script>
+  document.getElementById('clusterPanel').innerHTML = panelHTML;
+}
+
+</script>
+<!-- ▸ END FULL <script> BLOCK ◂ -->
+
   </body>
 </html>

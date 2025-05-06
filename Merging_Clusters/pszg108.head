@@ -1,0 +1,61 @@
+SIMPLE  =                    T / This is a FITS file                            
+BITPIX  =                  -32 /                                                
+NAXIS   =                    2 /                                                
+NAXIS1  =                20000 / Number of pixels along this axis               
+NAXIS2  =                20000 / Number of pixels along this axis               
+EXTEND  =                    T / This file may contain FITS extensions          
+EQUINOX =   2.000000000000E+03 / Mean equinox                                   
+MJD-OBS =   5.798400000000E+04 / [d] MJD of observation                         
+RADESYS = 'ICRS    '           / Equatorial coordinate system                   
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection           
+CUNIT1  = 'deg     '           / Units of coordinate increment and value        
+CRVAL1  =   3.506172512757E+02 / [deg] Coordinate value at reference point      
+CRPIX1  =              10319.5 / Pixel coordinate of reference point            
+CD1_1   =  -4.521829032456E-05 / Linear projection matrix                       
+CD1_2   =   0.000000000000E+00 / Linear projection matrix                       
+CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection               
+CUNIT2  = 'deg     '           / Units of coordinate increment and value        
+CRVAL2  =   4.878557623413E+01 / [deg] Coordinate value at reference point      
+CRPIX2  =              10763.5 / Pixel coordinate of reference point            
+CD2_1   =   0.000000000000E+00 / Linear projection matrix                       
+CD2_2   =   4.521829032456E-05 / Linear projection matrix                       
+EXPTIME =   0.000000000000E+00 / Maximum equivalent exposure time (s)           
+GAIN    =   2.961068618518E+03 / Maximum equivalent gain (e-/ADU)               
+SATURATE=   2.805915671301E+02 / Saturation Level (ADU)                         
+COMMENT                                                                         
+SOFTNAME= 'SWarp   '           / The software that processed those data         
+SOFTVERS= '2.38.0  '           / Version of the software                        
+SOFTDATE= '2019-07-10'         / Release date of the software                   
+SOFTAUTH= '2010-2012 IAP/CNRS/UPMC' / Maintainer of the software                
+SOFTINST= 'IAP  http://www.iap.fr' / Institute                                  
+COMMENT                                                                         
+AUTHOR  =                                                                       
+ORIGIN  = 'finnerdesktop'      / Where it was done                              
+DATE    = '2023-12-14T23:58:40' / When it was started (GMT)                     
+COMBINET= 'CLIPPED '           / COMBINE_TYPE config parameter for SWarp        
+COMMENT                                                                         
+COMMENT  Propagated FITS keywords                                               
+OBJECT  = 'PSZ1G108.18-11.53'                                                   
+COMMENT                                                                         
+COMMENT  Axis-dependent config parameters                                       
+RESAMPT1= 'LANCZOS3'           / RESAMPLING_TYPE config parameter               
+CENTERT1= 'ALL     '           / CENTER_TYPE config parameter                   
+PSCALET1= 'MEDIAN  '           / PIXELSCALE_TYPE config parameter               
+RESAMPT2= 'LANCZOS3'           / RESAMPLING_TYPE config parameter               
+CENTERT2= 'ALL     '           / CENTER_TYPE config parameter                   
+PSCALET2= 'MEDIAN  '           / PIXELSCALE_TYPE config parameter               
+WCSAXES =                    2 / Number of coordinate axes                      
+PC1_1   =  -4.521829032456E-05 / Coordinate transformation matrix element       
+PC2_2   =   4.521829032456E-05 / Coordinate transformation matrix element       
+CDELT1  =                  1.0 / [deg] Coordinate increment at reference point  
+CDELT2  =                  1.0 / [deg] Coordinate increment at reference point  
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole       
+LATPOLE =       48.78557623413 / [deg] Native latitude of celestial pole        
+MJDREF  =                  0.0 / [d] MJD of fiducial time                       
+DATE-OBS= '2017-08-19'         / ISO-8601 time of observation                   
+COMMENT                                                                         
+COMMENT                                                                         
+COMMENT                                                                         
+COMMENT  Propagated FITS keywords                                               
+COMMENT                                                                         
+COMMENT  Axis-dependent config parameters                                       
