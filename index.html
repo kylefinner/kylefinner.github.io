@@ -39,6 +39,9 @@
           flex: 1 1 calc(50% - 1rem);
         }
       }
+
+      #projectsColumn h2 { text-align:center; display:block; width:100%; }
+
     </style>
     <style>
       .cluster-col   { flex: 1; min-width: 260px; }
@@ -72,7 +75,7 @@
           <header>
             <p>Dark Matter | Gravitational Lensing | Galaxy Clusters</p>
             <h2>Kyle Finner</h2>
-            <h4><i>In search of the answers to questions unknown</i></h4>
+            <h4><i>In search of the answers to questions unknown (J.D.)</i></h4>
           </header>
         </div>
       </article>
@@ -164,7 +167,7 @@
   /* projectsData lists every cluster ID and display name */
   const projectsData = {
     merging: [
-      { id: 'toothbrush',  name: 'Toothbrush Cluster' },
+      { id: '1rxsj0603',  name: 'Toothbrush Cluster' },
       { id: 'abell115',    name: 'Abell 115' },
       { id: 'abell521',    name: 'Abell 521' },
       { id: 'abell523',    name: 'Abell 523' },
@@ -180,6 +183,7 @@
       { id: 'abell2345',   name: 'Abell 2345' },
       { id: 'abell2744',   name: 'Abell 2744' },
       { id: 'abell3411',   name: 'Abell 3411' },
+      { id: 'cizaj2242',   name: 'Sausage Cluster' },
       { id: 'macsj1149',   name: 'MACS J1149' },
       { id: 'macsj1752',   name: 'MACS J1752' },
       { id: 'plckg287',    name: 'PLCK G287' },
@@ -203,18 +207,340 @@
      keep all your existing entries.  The script adds defaults for
      any IDs not present.                                         */
   const clusterDetails = {
+
+    toothbrush: {
+      title: 'Toothbrush Cluster',
+      image: 'images/1rxsj0603_4pane_SN_auto.jpg',
+      alt:   '1rxsj0603',
+      paragraph: `
+        The Toothbrush cluster has the famous Toothbrush radio relic in the north. The cluster is bullet-like with a ram-pressure stripped tail trailing the southern subcluster.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell115: {
+      title: 'Abell 115',
+      image: 'images/abell115_4pane_SN_auto.jpg',
+      alt:   'Abell 115',
+      paragraph: `
+        A system with double ram-pressure stripped tails from each subcluster. A single radio relic is seen in the north.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2019ApJ...874..143K/abstract', text: 'Kim et al. 2019' },
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell521: {
+      title: 'Abell 521',
+      image: 'images/abell521_4pane_SN_auto.jpg',
+      alt:   'Abell 521',
+      paragraph: `
+        A somewhat complex system that consists of at least 3 subclusters. Originally, the bright radio relic in the east was known until a candidate counter relic was discovered in the west. Multiple images of a background galaxy are found near the BCG. The A521 field also hosts a couple really cool looking ring galaxies.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2020ApJ...903..151Y/abstract', text: 'Yoon et al. 2020' },
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell523: {
+      title: 'Abell 523',
+      image: 'images/abell523_4pane_SN_auto.jpg',
+      alt:   'Abell 523',
+      paragraph: `
+        A north-south merging system with potentially two subclusters in the north. The northern subcluster is found to be more massive but is faint in X-rays.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell746: {
+      title: 'Abell 746',
+      image: 'images/abell746_4pane_SN_auto.jpg',
+      alt:   'Abell 746',
+      paragraph: `
+        One of the more complex systems of clusters mergers. Multiple peaks are detected in the mass map and multiple radio relic candidates are found.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2024ApJ...962..100H/abstract', text: 'Hyeonghan et al. 2024' },
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell781: {
+      title: 'Abell 781',
+      image: 'images/abell781_4pane_SN_auto.jpg',
+      alt:   'Abell 781',
+      paragraph: `
+        A good example of the projection of multiple clusters along the line of sight. In the foreground is a merging system called Main that has a nearby subcluster labeled Middle and a more distant cluster labeled North. To the east, is a background galaxy cluster.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
     abell1240: {
       title: 'Abell 1240',
       image: 'images/abell1240_4pane_SN_auto.jpg',
       alt:   'Abell 1240',
       paragraph: `
         A double radio relic cluster that is part of a vast filamentary structure.
-        The weak-lensing mass distribution is detected for Abell 1240 and its companion A1237.
+        The weak-lensing mass distribution is detected for Abell 1240 and its companion A1237 with a candidate bridge running between the two.
       `,
       references: [
-        { url: 'https://arxiv.org/abs/2109.06879', text: 'Cho et al. 2021' }
+        { url: 'https://arxiv.org/abs/2109.06879', text: 'Cho et al. 2021' },
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell1300: {
+      title: 'Abell 1300',
+      image: 'images/abell1300_4pane_SN_auto.jpg',
+      alt:   'Abell 1300',
+      paragraph: `
+        The most confusing weak-lensing mass distribution that I have seen so far. The peak is found in the center with a triangular shape at lower significance contours, but the peak is well offset from the brightest X-ray emission. The triangular shape has vertices near the BCGs. The extension of the mass map to the north has great agreement with the X-ray emission.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell1612: {
+      title: 'Abell 1612',
+      image: 'images/abell1612_4pane_SN_auto.jpg',
+      alt:   'Abell 1612',
+      paragraph: `
+        A well-detected east-west merger. Two peaks are found in the east. The X-ray data is poor but the system appears to be a dissociative merger.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell2034: {
+      title: 'Abell 2034',
+      image: 'images/abell2034_4pane_SN_auto.jpg',
+      alt:   'Abell 2034',
+      paragraph: `
+        A north-south bullet-like merging cluster. All the weak-lensing analyses that exist show an offset of the northern BCG from the mass peak.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell2061: {
+      title: 'Abell 2061',
+      image: 'images/abell2061_4pane_SN_auto.jpg',
+      alt:   'Abell 2061',
+      paragraph: `
+        A nearby merging cluster system with a radio relic that is distant from the X-ray emission. The BCG shows fantastic shell structure, which may be a sign of the past merging activity.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell2163: {
+      title: 'Abell 2163',
+      image: 'images/abell2163_4pane_SN_auto.jpg',
+      alt:   'Abell 2163',
+      paragraph: `
+        Abell 2163 is a massive galaxy cluster with smaller companions merging with it. The WL mass distribution only picks up the core of the cluster, as the X-ray emission is far more extended. A northern cluster is also detected. Why is the mass map so concentrated in the center and the X-ray emission so extended?
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell2255: {
+      title: 'Abell 2255',
+      image: 'images/abell2255_4pane_SN_auto.jpg',
+      alt:   'Abell 2255',
+      paragraph: `
+        A seemingly relaxed system in X-ray emission. WL tells a completely different story with multiple peaks including two that align with the NE radio relic. More radio relics have been found at greater distances and even a radio emission that fills a 20 Mpc region around the cluster. Abell 2255 is a great candidate to study the surrounding large-scale structure.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell2345: {
+      title: 'Abell 2345',
+      image: 'images/abell2345_4pane_SN_auto.jpg',
+      alt:   'Abell 2345',
+      paragraph: `
+        Abell 2345 is a system of 3 subclusters with the eastern two having collided to form shocks. The western subcluster is not in the right position to have formed the radio relics (unless it is driving a shock to its east). The central mass peak have no clear BCG associated to it.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell2744: {
+      title: 'Abell 2744',
+      image: 'images/abell2744_4pane_SN_auto.jpg',
+      alt:   'Abell 2744',
+      paragraph: `
+        One of the more famous cluster mergers, Abell 2744 hosts at least 4 subclusters (with multiple BCG in the two larger systems). The western mass peak has an offset from the X-ray emission peak.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    abell3411: {
+      title: 'Abell 3411',
+      image: 'images/abell3411_4pane_SN_auto.jpg',
+      alt:   'Abell 3411',
+      paragraph: `
+        This cluster was shown through a spectral index analysis to have a radio relic that clearly connects to an AGN. It is a difficult cluster to study with WL from the ground because it is close to the galactic plane (many stars) and near the limits on declination the Subaru telescope. The X-ray emission from the cluster shows a large v-shape.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    cizaj2242: {
+      title: 'Sausage Cluster',
+      image: 'images/cizaj2242_4pane_SN_auto.jpg',
+      alt:   'Sausage Cluster',
+      paragraph: `
+        The most famous radio relic cluster with a radio relic in the north that resembles a sausage. The WL mass distribution shows two peaks that are roughly associated to a north and south subcluster. However, the WL mass maps leaves a lot to be desired. The cluster is extremely difficult to study with WL from the ground because of stars from the galactic plane. I would suggest that we know very little about the true mass distribution of the Sausage cluster.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    macsj1149: {
+      title: 'MACS J1149',
+      image: 'images/macsj1149_4pane_SN_auto.jpg',
+      alt:   'MACS J1149',
+      paragraph: `
+        MACS J1149 is a distant galaxy cluster which makes WL analysis from the ground difficult. Not much detail can be provided from the ground-based imaging.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    macsj1752: {
+      title: 'MACS J1752',
+      image: 'images/macsj1752_4pane_SN_auto.jpg',
+      alt:   'MACS J1752',
+      paragraph: `
+        MACS J1752 is a one of the most massive 1:1 mass ratio mergers known in the Universe. It has a clean pair of radio relics that sit along the merger axis. The cluster hosts strong-lensing images.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2021ApJ...918...72F/abstract', text: 'Finner et al. 2021' },
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    plckg287: {
+      title: 'PLCK G287',
+      image: 'images/plckg287_4pane_SN_auto.jpg',
+      alt:   'PLCK G287',
+      paragraph: `
+        One of the most massive galaxy cluster systems in the Universe. The mass distribution is dominated by the central cluster that has two competing BCGs. Two subclusters have been discovered in the central region with two more subclusters along a NW-SE filament. The cluster has at least two radio relics, but it is difficult to separate radio relics from the immense amount of radio emission that is found in the cluster region. In contrast to Abell 2163, here is a massive cluster with a WL detection that extends beyond the bright X-ray emission.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2017ApJ...851...46F/abstract', text: 'Finner et al. 2017' },
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    plckg108: {
+      title: 'PLCK G108',
+      image: 'images/plckg108_4pane_SN_auto.jpg',
+      alt:   'PLCK G108',
+      paragraph: `
+        This is a system that has not been studied in great detail. It has radio relics that are separated by about 3 Mpc. At our ground-based resolution, the mass distribution has a single dominant peak with a subcluster to the northeast. Making an educated guess based on the galaxies in the center, there is a possibility for multiple peaks in the cluster core. There are also blue galaxies that surround the BCG, which may indicate strong lensing.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    rxcj1314: {
+      title: 'RXC J1314',
+      image: 'images/rxcj1314_4pane_SN_auto.jpg',
+      alt:   'RXC J1314',
+      paragraph: `
+        A merging system with radio relics at different distances from the barocenter of the cluster. The western subcluster is the more massive of the two. A candidate background cluster is found to the south.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    zwcl0008: {
+      title: 'ZwCl 0008',
+      image: 'images/zwcl0008_4pane_SN_auto.jpg',
+      alt:   'ZwCl 0008',
+      paragraph: `
+        A double radio relic system with gas dissociation from its two dominant mass peaks. It is a difficult cluster to study with WL from the ground because of stars. The short distance of the radio relics from the mass peaks is an interesting feature (standoff distance).
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    zwcl1447: {
+      title: 'ZwCl 1447',
+      image: 'images/zwcl1447_4pane_SN_auto.jpg',
+      alt:   'ZwCl 1447',
+      paragraph: `
+        A double radio relic system with mass peaks that are close together. The southern radio relic has a bow shape that competes with the Sausage cluster. A third mass peak is found in the south which, as of yet, has no X-ray detection.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2022ApJ...924...18L/abstract', text: 'Lee et al. 2022' },
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    zwcl1856: {
+      title: 'ZwCl 1856',
+      image: 'images/zwcl1856_4pane_SN_auto.jpg',
+      alt:   'ZwCl 1856',
+      paragraph: `
+        Another double radio relic system with radio relics that have a large linear size. This merging system has a low total mass.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2021ApJ...918...72F/abstract', text: 'Finner et al. 2021' },
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    zwcl2341: {
+      title: 'ZwCl 2341',
+      image: 'images/zwcl2341_4pane_SN_auto.jpg',
+      alt:   'ZwCl 2341',
+      paragraph: `
+        This is a complicated one. The mass distribution shows multiple peaks but none are in great agreement with the galaxies. There are two radio relics and evidence of gas dissociation. There may also be a background cluster.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract', text: 'Finner et al. 2025' }
+      ]
+    },
+
+    spt2023: {
+      title: 'SPT2023-5535',
+      image: 'images/SPT2023.jpg',
+      alt:   'SPT2023-5535',
+      paragraph: `
+        A merging galaxy cluster with a radio relic that is inverted. The relic was discovered in the ASKAP/EMU pilot survey.
+      `,
+      references: [
+        { url: 'https://ui.adsabs.harvard.edu/abs/2020ApJ...900..127H/abstract', text: 'Hyeonghan et al. 2020' }
       ]
     }
+
     /* … keep your other custom clusters here … */
   };
 
@@ -230,18 +556,6 @@
         paragraph: `Two-sentence placeholder summary for ${name}.`,
         references: []
       };
-    }
-  });
-
-  /* ─────────────────────────────────────────────────────────────
-     3)  ADD “Finner et al. 2025” REFERENCE TO ALL ABELL CLUSTERS
-     ───────────────────────────────────────────────────────────── */
-  Object.keys(clusterDetails).forEach(id => {
-    if (id.toLowerCase().includes('abell')) {
-      clusterDetails[id].references.push({
-        url: 'https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract',
-        text: 'Finner et al. 2025'
-      });
     }
   });
 
@@ -279,7 +593,7 @@
   const dataLinksHTML = `
     <h4>Cluster WL Data</h4>
     <div class="cluster-links">
-      <a target="_blank" href="Merging_Clusters/${id}_color.jpg">Download the color jpg.</a>
+      <a target="_blank" href="Merging_Clusters/${id}_color.jpg">Download the colour image jpg.</a>
       <a target="_blank" href="Merging_Clusters/${id}.head">Download the wcs .head file.</a>
       <a target="_blank" href="Merging_Clusters/${id}_WL_SN.fits">Download the mass map.</a>
     </div>
