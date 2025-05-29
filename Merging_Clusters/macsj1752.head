@@ -1,40 +1,41 @@
 SIMPLE  =                    T / This is a FITS file                            
 BITPIX  =                  -32 /                                                
 NAXIS   =                    2 /                                                
-NAXIS1  =                14521 / Number of pixels along this axis               
-NAXIS2  =                14104 / Number of pixels along this axis               
+NAXIS1  =                13998 / NUMBER OF ELEMENTS ALONG THIS AXIS             
+NAXIS2  =                13922 / NUMBER OF ELEMENTS ALONG THIS AXIS             
 EXTEND  =                    T / This file may contain FITS extensions          
-EQUINOX =   2.000000000000E+03 / Mean equinox                                   
-RADECSYS= 'ICRS    '           / Astrometric system                             
+EQUINOX =        2000.00000000 / Mean equinox                                   
+MJD-OBS =   5.648600000000E+04 / Modified Julian date at start                  
+RADESYS = 'ICRS    '           / Astrometric system                             
 CTYPE1  = 'RA---TAN'           / WCS projection type for this axis              
 CUNIT1  = 'degree  '           / Axis unit                                      
-CRVAL1  =   2.680114885756E+02 / World coordinate on this axis                  
-CRPIX1  =   7.261000000000E+03 / Reference pixel on this axis                   
-CD1_1   =  -5.607632192550E-05 / Linear projection matrix                       
+CRVAL1  =   2.679918840788E+02 / World coordinate on this axis                  
+CRPIX1  =   6.999500000000E+03 / Reference pixel on this axis                   
+CD1_1   =  -5.607818820863E-05 / Linear projection matrix                       
 CD1_2   =   0.000000000000E+00 / Linear projection matrix                       
 CTYPE2  = 'DEC--TAN'           / WCS projection type for this axis              
 CUNIT2  = 'degree  '           / Axis unit                                      
-CRVAL2  =   4.468622096528E+01 / World coordinate on this axis                  
-CRPIX2  =   7.052500000000E+03 / Reference pixel on this axis                   
+CRVAL2  =   4.469160279997E+01 / World coordinate on this axis                  
+CRPIX2  =   6.961500000000E+03 / Reference pixel on this axis                   
 CD2_1   =   0.000000000000E+00 / Linear projection matrix                       
-CD2_2   =   5.607632192550E-05 / Linear projection matrix                       
-EXPTIME =   4.320000000000E+04 / Maximum equivalent exposure time (s)           
-GAIN    =   1.408777908896E+03 / Maximum equivalent gain (e-/ADU)               
-SATURATE=   2.532361858376E+02 / Saturation Level (ADU)                         
+CD2_2   =   5.607818820863E-05 / Linear projection matrix                       
+EXPTIME =   3.273000000000E+03 / Maximum equivalent exposure time (s)           
+GAIN    =   3.299099287641E+01 / Maximum equivalent gain (e-/ADU)               
+SATURATE=   3.418249290314E+02 / Saturation Level (ADU)                         
 COMMENT                                                                         
 SOFTNAME= 'SWarp   '           / The software that processed those data         
-SOFTVERS= '2.19.1  '           / Version of the software                        
-SOFTDATE= '2011-03-10'         / Release date of the software                   
-SOFTAUTH= 'Emmanuel BERTIN <bertin@iap.fr>' / Maintainer of the software        
+SOFTVERS= '2.38.0  '           / Version of the software                        
+SOFTDATE= '2015-11-16'         / Release date of the software                   
+SOFTAUTH= '2010-2012 IAP/CNRS/UPMC' / Maintainer of the software                
 SOFTINST= 'IAP  http://www.iap.fr' / Institute                                  
 COMMENT                                                                         
-AUTHOR  = 'mkjee   '           / Who ran the software                           
-ORIGIN  = 'nania.physics.ucdavis.edu' / Where it was done                       
-DATE    = '2013-08-08T18:43:57' / When it was started (GMT)                     
-COMBINET= 'WEIGHTED'           / COMBINE_TYPE config parameter for SWarp        
+AUTHOR  = 'kyle    '           / Who ran the software                           
+ORIGIN  = 'workstation.local'  / Where it was done                              
+DATE    = '2019-06-20T05:45:07' / When it was started (GMT)                     
+COMBINET= 'MEDIAN  '           / COMBINE_TYPE config parameter for SWarp        
 COMMENT                                                                         
 COMMENT  Propagated FITS keywords                                               
-OBJECT  = 'MACSJ1752.0+4440              ' / Identification of object observed  
+OBJECT  = 'MACSJ1752.0+4440'   / Identification of object observed              
 COMMENT                                                                         
 COMMENT  Axis-dependent config parameters                                       
 RESAMPT1= 'LANCZOS3'           / RESAMPLING_TYPE config parameter               
@@ -43,20 +44,3 @@ PSCALET1= 'MEDIAN  '           / PIXELSCALE_TYPE config parameter
 RESAMPT2= 'LANCZOS3'           / RESAMPLING_TYPE config parameter               
 CENTERT2= 'ALL     '           / CENTER_TYPE config parameter                   
 PSCALET2= 'MEDIAN  '           / PIXELSCALE_TYPE config parameter               
-COMMENT                                                                         
-COMMENT                                                                         
-COMMENT                                                                         
-COMMENT  Propagated FITS keywords                                               
-COMMENT                                                                         
-COMMENT  Axis-dependent config parameters                                       
-COMMENT                                                                         
-COMMENT                                                                         
-COMMENT                                                                         
-COMMENT  Propagated FITS keywords                                               
-COMMENT                                                                         
-COMMENT  Axis-dependent config parameters                                       
-HISTORY Image was compressed by CFITSIO using scaled integer quantization:      
-HISTORY   q = 4.000000 / quantized level scaling parameter                      
-HISTORY 'SUBTRACTIVE_DITHER_1' / Pixel Quantization Algorithm                   
-CHECKSUM= 'MS9HMP8GMP8GMP8G'   / HDU checksum updated 2017-07-26T23:38:21       
-DATASUM = '3064376804'         / data unit checksum updated 2017-07-26T23:38:21 

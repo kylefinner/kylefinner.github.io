@@ -571,6 +571,7 @@
   function resetProjects() {
     document.getElementById('projectLinks').innerHTML = defaultLinksHTML;
     document.getElementById('backLinkFlex').style.display = 'none';
+    document.getElementById('backLink').innerHTML = '';
   }
 
   function loadCategory(category) {
@@ -589,6 +590,10 @@
 
     /* show the right-aligned “Back” link */
     document.getElementById('backLinkFlex').style.display = 'inline';
+    document.getElementById('backLink').innerHTML = `
+  <a href="#" onclick="event.preventDefault(); resetProjects();">&larr; Back to Projects</a>
+`;
+
   }
 
   function showCluster(id) {
