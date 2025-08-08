@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>XLSSC 122 Image Viewer</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+    }
+    #container {
+      width: 100vw;
+      height: 100vh;
+      overflow: auto;
+      cursor: grab;
+      background: #000;
+    }
+    #container.grabbing {
+      cursor: grabbing;
+    }
+    #container img {
+      display: block;
+      width: auto;    /* set by JS */
+      height: auto;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <!-- point at your file under images/ -->
+    <img id="img" src="images/XLSSC122_color.jpg" alt="XLSSC 122">
+  </div>
+
+  <script>
+    const container = document.getElementById('container');
+    const img       = document.getElementById('img');
+
+    let scale = 1,
+        isDown = false,
+        startX, startY,
+        scrollLeft, scrollTop,
+        naturalW, naturalH;
+
+    img.addEventListener('load', () => {
+      naturalW = img.naturalWidth;
+      naturalH = img.naturalHeight;
+      const cw = container.clientWidth;
+      const ch = container.clientHeight;
+      scale = Math.min(cw / naturalW, ch / naturalH, 1);
+      updateSize();
+      container.scrollLeft = (naturalW * scale - cw) / 2;
+      container.scrollTop  = (naturalH * scale - ch) / 2;
+    });
+
+    function updateSize() {
+      img.style.width  = (naturalW * scale) + 'px';
+      img.style.height = (naturalH * scale) + 'px';
+    }
+
+    container.addEventListener('wheel', e => {
+      e.preventDefault();
+      const delta  = -e.deltaY;
+      const factor = delta > 0 ? 1.1 : 0.9;
+      const newScale = Math.max(0.1, Math.min(scale * factor, 10));
+      const rect = img.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+      const prevW = naturalW * scale;
+      const prevH = naturalH * scale;
+      const ratioX = offsetX / prevW;
+      const ratioY = offsetY / prevH;
+
+      scale = newScale;
+      updateSize();
+
+      const newW = naturalW * scale;
+      const newH = naturalH * scale;
+      container.scrollLeft += (newW - prevW) * ratioX;
+      container.scrollTop  += (newH - prevH) * ratioY;
+    });
+
+    container.addEventListener('mousedown', e => {
+      isDown = true;
+      container.classList.add('grabbing');
+      startX = e.pageX - container.offsetLeft;
+      startY = e.pageY - container.offsetTop;
+      scrollLeft = container.scrollLeft;
+      scrollTop  = container.scrollTop;
+    });
+    container.addEventListener('mouseup',   () => { isDown = false; container.classList.remove('grabbing'); });
+    container.addEventListener('mouseleave',() => { isDown = false; container.classList.remove('grabbing'); });
+    container.addEventListener('mousemove', e => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - container.offsetLeft;
+      const y = e.pageY - container.offsetTop;
+      const dx = x - startX;
+      const dy = y - startY;
+      container.scrollLeft = scrollLeft - dx;
+      container.scrollTop  = scrollTop  - dy;
+    });
+  </script>
+</body>
+</html>
