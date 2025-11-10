@@ -1,54 +1,280 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>XLSSC 122 JWST mosaics</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JWST XLSSC 122 Data Release – HST Comparison</title>
+  <meta name="description" content="Side‑by‑side HST ↔ JWST image comparison and links to the public data release (Zenodo)." />
+  <meta property="og:title" content="JWST XLSSC 122 Data Release – Image Comparison" />
+  <meta property="og:description" content="Slide between HST and JWST color images and access the full data release." />
+  <meta property="og:type" content="website" />
+  <meta name="color-scheme" content="light dark">
   <style>
+    :root {
+      --bg: #0b0d10;
+      --card: #11151a;
+      --text: #e6edf3;
+      --muted: #9fb0c0;
+      --accent: #6fb1ff;
+      --border: #1f2630;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    html { scroll-behavior: smooth; }
     body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #000;
-      color: #fff;
-      font-family: sans-serif;
-      padding: 0 20px;
-      box-sizing: border-box;
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji";
+      background: linear-gradient(180deg, #0a0c10, #0b0d10 60%);
+      color: var(--text);
     }
-    h1 {
-      margin: 0 0 20px;
-      font-size: 3rem;
-      text-align: center;
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    header {
+      max-width: 1100px; margin: 0 auto; padding: 28px 20px 10px;
+      display: flex; gap: 12px; align-items: center; justify-content: space-between;
     }
-    p {
-      max-width: 800px;
-      text-align: center;
-      font-size: 1.125rem;
-      line-height: 1.5;
-      margin-bottom: 40px;
+    .brand { font-weight: 700; letter-spacing: 0.2px; }
+    .tag { color: var(--muted); font-size: 14px; }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 16px 20px 80px; }
+
+    .hero {
+      display: grid; gap: 10px; margin: 8px 0 18px;
     }
-    a {
-      color: #1e90ff;
-      font-size: 1.5rem;
-      text-decoration: none;
-      padding: 0.75rem 1.5rem;
-      border: 2px solid #1e90ff;
-      border-radius: 4px;
+    .hero h1 { margin: 0; font-size: clamp(22px, 3.6vw, 34px); }
+    .hero p { margin: 0; color: var(--muted); max-width: 70ch; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.25);
     }
-    a:hover {
-      background: rgba(30,144,255,0.1);
+
+    /* Slider container */
+    .slider-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; /* square by default */ overflow: hidden; border-radius: 12px; contain: layout paint size style; }
+    .slider-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; pointer-events: none; }
+    .top-holder {}
+    .slider-wrap .top { clip-path: inset(0 calc(100% - var(--split, 50%)) 0 0); -webkit-clip-path: inset(0 calc(100% - var(--split, 50%)) 0 0); will-change: clip-path; }
+
+    /* Handle */
+    .handle { position: absolute; inset: 0; touch-action: none; }
+    .bar { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.7); left: 50%; transform: translateX(-1px); will-change: left; }
+    .knob { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(3px); will-change: left; }
+    .chev { width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+    .chev.left { border-right: 10px solid #fff; margin-right: 10px; }
+    .chev.right { border-left: 10px solid #fff; margin-left: 10px; }
+
+    .labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 14px; color: var(--muted); }
+    .labels span { background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; }
+    .err { display:none; margin-top:10px; padding:8px 10px; border-radius:8px; border:1px solid #553; background:#221; color:#f8d7da; font-size:13px; }
+    .labels span { background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: #0d1218; color: var(--text); }
+    .btn:hover { filter: brightness(1.05); }
+
+    footer { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; color: var(--muted); font-size: 14px; }
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .small { font-size: 13px; color: var(--muted); }
+    /* Intro fade-in for hero + slider */
+    .intro { opacity: 0; transform: translateY(10px); transition: opacity 500ms ease, transform 500ms ease; transition-delay: var(--delay, 0ms); }
+    .intro.show { opacity: 1; transform: none; }
+  .reveal { opacity: 0; transform: translateY(12px); transition: opacity 420ms ease, transform 420ms ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { transition: none !important; }
+      html { scroll-behavior: auto; }
     }
   </style>
 </head>
 <body>
-  <h1>XLSSC 122 JWST mosaics</h1>
-  
-  <p>
-    You've come to the right place to get the JWST mosaic images for XLSSC 122. The paper is currently in the referee process, so the images are not available yet. Please reach out to kfinner@caltech.edu if you are interested in having them promptly. In the mean time, you can enjoy the color image that I created.
-  </p>
-  
-  <a href="viewer.html" target="_blank">Open XLSSC 122 Image</a>
+  <header>
+    <div>
+      <div class="brand"><h1>JWST XLSSC 122 Data Release</h1></div>
+      <div class="tag">The JWST mosaic images of XLSSC 122 are hosted here. The data reduction was performed by Zach Scofield (Yonsei University). A description of the observations can be found in our <a href=https://doi.org/10.48550/arXiv.2508.08356> strong lensing paper</a>. </div>
+    </div>
+    <nav class="small">
+      <a href="#data">Data</a> · <a href="#cite">Cite</a> · <a href="#about">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero intro" style="--delay: 0ms;">
+      <h1>Slide to compare <strong>HST</strong> and <strong>JWST</strong></h1>
+      <p>Use the handle to sweep between the legacy HST color image and our JWST color composite. Full-resolution FITS images are linked below.</p>
+    </section>
+
+    <section class="card intro" aria-labelledby="slider-title" style="--delay: 100ms;">
+      <h2 id="slider-title" class="small" style="margin:0 0 8px 6px; color:var(--muted);">Image Comparison</h2>
+      <div class="slider-wrap" id="slider">
+        <!-- Bottom image (e.g., HST) -->
+        <img src="assets/hst_xlssc.png" alt="HST color image" loading="eager" decoding="sync" draggable="false" class="bottom" />
+        <!-- Top image (e.g., JWST) with clip that changes on drag -->
+        <img src="assets/jwst_xlssc.png" alt="JWST color image" loading="eager" decoding="sync" draggable="false" class="top" />
+        <div class="handle" aria-hidden="true">
+          <div class="bar"></div>
+          <div class="knob" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-label="Image comparison slider">
+            <div style="display:flex; align-items:center;">
+              <div class="chev left"></div>
+              <div class="chev right"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="labels"><span>JWST</span><span>HST</span></div>
+      <div id="img-error" class="err">Image failed to load. Ensure the files exist at <code>assets/hst_xlssc.png</code> and <code>assets/jwst_xlssc.png</code> (case‑sensitive).</div>
+      <div class="actions">
+        <a class="btn" id="download-hst" href="assets/hst_xlssc.png" download>Download HST preview</a>
+        <a class="btn" id="download-jwst" href="assets/jwst_xlssc.png" download>Download JWST preview</a>
+        <a class="btn" href="#data">Go to data release ↓</a>
+      </div>
+    </section>
+
+    <section id="desc" class="card reveal" style="margin-top:16px;">
+      <h2 style="margin:4px 0 8px 6px;" class="small">Data Description</h2>
+      <p class="small">The images above show the galaxy cluster XLSSC 122 at a redshift of z=1.98.</p>
+      <div class="grid" style="margin-top:8px;">
+        <div class="small"><strong>A distant look into the past</strong><br>JWST's deep imaging provides an exceptionally detailed look at this distant cluster, with a limiting magnitude of 30.9 in the deepest filter.</div>
+        <div class="small"><strong>Imaging & processing</strong><br>The JWST mosaics are resampled with a pixel scale of 0.02 arcsec/pixel using the <a href="https://jwst-pipeline.readthedocs.io/en/latest/">JWST Science Calibration Pipeline</a>, with systematic effects corrected with the <a href="https://github.com/zpscofield/young-jwstpipe">Yonsei Observable UNiverse Group JWST pipeline</a></div>
+        <div class="small"><strong>Notable features</strong><br>The JWST imaging reveals two remarkable features: asymmetric ICL suggesting ongoing merger activity, and strong lensing arcs that signal a highly concentrated cluster core.</div>
+      </div>
+    </section>
+
+    <section id="data" class="card reveal" style="margin-top:16px;">
+      <h2 style="margin:4px 0 8px 6px;" class="small">Data Access</h2>
+      <div class="grid">
+        <div>
+          <h3 style="margin:0 0 6px; font-size:16px;">Zenodo / DOI</h3>
+          <p class="small">FITS mosaics and weight files.</p>
+          <p><a href="https://doi.org/10.5281/zenodo.16810356" target="_blank" rel="noopener">DOI: 10.5281/zenodo.16810356</a></p>
+        </div>
+        <div>
+          <h3 style="margin:0 0 6px; font-size:16px;">University Mirror</h3>
+          <p class="small">Institutional mirror for faster downloads in Asia.</p>
+          <p><a href="https://example.edu/jwst-data" target="_blank" rel="noopener">example.edu/jwst-data</a></p>
+        </div>
+        <div>
+          <h3 style="margin:0 0 6px; font-size:16px;">Products</h3>
+          <ul class="small" style="margin: 6px 0 0 16px;">
+            <li>NIRCam mosaics (F090W, F200W, F277W, F356W)</li>
+            <li>Weight maps</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="cite" class="card reveal" style="margin-top:16px;">
+      <h2 style="margin:4px 0 8px 6px;" class="small">How to Cite</h2>
+      <p class="small">Please cite the data DOI and our paper. Example BibTeX:</p>
+<pre class="small" style="white-space:pre-wrap; border:1px solid var(--border); background:#0d1218; padding:10px; border-radius:8px;">
+@dataset{Scofield2025JWSTRelease,
+  author       = {Scofield, Zachary and Collaborators},
+  title        = {JWST Cluster Field Data Release},
+  year         = {2025},
+  publisher    = {Zenodo},
+  doi          = {10.0000/zenodo.placeholder},
+}
+</pre>
+    </section>
+
+    <section id="about" class="card reveal" style="margin-top:16px;">
+      <h2 style="margin:4px 0 8px 6px;" class="small">About</h2>
+      <p class="small">This page is a lightweight, static site designed for GitHub Pages. Images are previews; for scientific work use the FITS files provided in the archive.</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="grid">
+      <div class="small">© 2025 JWST Data Release Team. Licensed CC BY 4.0 for images and MIT for website code.</div>
+      <div class="small">Contact: <a href="mailto:data-release@example.edu">data-release@example.edu</a></div>
+    </div>
+  </footer>
+
+  <script>
+(function(){
+  const wrap = document.getElementById('slider');
+  const topImg = wrap.querySelector('.top');
+  const bottomImg = wrap.querySelector('.bottom');
+  const bar = wrap.querySelector('.bar');
+  const knob = wrap.querySelector('.knob');
+
+  // Ensure both images are decoded before first paint
+  const decoders = [];
+  if (bottomImg.decode) decoders.push(bottomImg.decode().catch(()=>{}));
+  if (topImg.decode) decoders.push(topImg.decode().catch(()=>{}));
+
+  function setSplitFromClientX(clientX){
+    const r = wrap.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - r.left, r.width));
+    const p = x / r.width; // 0..1
+    const pct = (p * 100) + '%';
+    const clipRight = (100 - p * 100) + '%';
+    // Move handle
+    bar.style.left = pct;
+    knob.style.left = pct;
+    // Reveal top image without moving it (only clip)
+    topImg.style.clipPath = 'inset(0 ' + clipRight + ' 0 0)';
+    topImg.style.webkitClipPath = 'inset(0 ' + clipRight + ' 0 0)';
+    knob.setAttribute('aria-valuenow', Math.round(p * 100));
+  }
+
+  function init(){
+    const r = wrap.getBoundingClientRect();
+    setSplitFromClientX(r.left + r.width/2);
+  }
+
+  Promise.all(decoders).finally(init);
+
+  // Pointer events for snappy drag with capture
+  wrap.addEventListener('pointerdown', (e)=>{
+    wrap.setPointerCapture(e.pointerId);
+    setSplitFromClientX(e.clientX);
+  });
+  wrap.addEventListener('pointermove', (e)=>{
+    if (!wrap.hasPointerCapture(e.pointerId)) return;
+    setSplitFromClientX(e.clientX);
+  });
+  wrap.addEventListener('pointerup', (e)=>{
+    if (wrap.hasPointerCapture(e.pointerId)) wrap.releasePointerCapture(e.pointerId);
+  });
+
+  window.addEventListener('resize', init);
+})();
+
+// Smooth scroll fallback for in-page anchors
+(function(){
+  const supportsSmooth = 'scrollBehavior' in document.documentElement.style;
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e)=>{
+      const id = a.getAttribute('href');
+      if (!id || id === '#') return;
+      const target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: supportsSmooth ? 'smooth' : 'auto', block: 'start' });
+    });
+  });
+})();
+
+// Fade-in on scroll using IntersectionObserver
+(function(){
+  const items = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) { items.forEach(el => el.classList.add('visible')); return; }
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
+  items.forEach(el => io.observe(el));
+})();
+
+// Intro fade-in on load (separate from scroll reveals)
+(function(){
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function show(){ document.querySelectorAll('.intro').forEach(el => el.classList.add('show')); }
+  if (prefersReduced) { show(); return; }
+  if (document.readyState === 'complete') show();
+  else window.addEventListener('load', show);
+})();
+</script>
 </body>
 </html>
