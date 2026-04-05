@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cluster Dashboard</title>
+  <meta
+    name="description"
+    content="A static galaxy cluster dashboard with catalog search, filtering, plots, and sky viewer."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
+  <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="page-shell">
+    <aside class="sidebar card">
+      <div class="sidebar-header">
+        <h1>Cluster Explorer</h1>
+        <p id="statusText" class="lede">Loading cluster data...</p>
+      </div>
+
+      <section class="control-group">
+        <label for="searchInput">Search Name</label>
+        <input id="searchInput" type="text" placeholder="ACO 2744, MACS1149, PSZ2...">
+      </section>
+
+      <section class="control-group">
+        <div class="group-heading">
+          <h2>Spatial Search</h2>
+          <button id="clearSpatialBtn" class="ghost-button" type="button">Clear</button>
+        </div>
+        <div class="two-up">
+          <label>
+            <span>RA (deg)</span>
+            <input id="raInput" type="number" step="0.0001" placeholder="RA">
+          </label>
+          <label>
+            <span>Dec (deg)</span>
+            <input id="decInput" type="number" step="0.0001" placeholder="Dec">
+          </label>
+        </div>
+        <label>
+          <span>Radius (arcmin)</span>
+          <input id="radiusInput" type="number" step="0.1" min="0" value="10">
+        </label>
+      </section>
+
+      <section class="control-group">
+        <div class="group-heading">
+          <h2>Scientific Filters</h2>
+        </div>
+        <div class="two-up">
+          <label>
+            <span>Min z</span>
+            <input id="zMinInput" type="number" step="0.001">
+          </label>
+          <label>
+            <span>Max z</span>
+            <input id="zMaxInput" type="number" step="0.001">
+          </label>
+        </div>
+        <button id="resetZBtn" class="ghost-button full-width" type="button">Reset z</button>
+
+        <div class="two-up">
+          <label>
+            <span>Min M (1e14 Msun)</span>
+            <input id="massMinInput" type="number" step="0.01">
+          </label>
+          <label>
+            <span>Max M (1e14 Msun)</span>
+            <input id="massMaxInput" type="number" step="0.01">
+          </label>
+        </div>
+        <button id="resetMassBtn" class="ghost-button full-width" type="button">Reset M</button>
+
+        <div class="two-up">
+          <label>
+            <span>N catalogs min</span>
+            <input id="nMinInput" type="number" step="1" min="0" value="0">
+          </label>
+          <label>
+            <span>N catalogs max</span>
+            <input id="nMaxInput" type="number" step="1" min="0" value="50">
+          </label>
+        </div>
+
+        <div class="checkbox-grid">
+          <label class="checkbox-item">
+            <input id="keepNaNsInput" type="checkbox" checked>
+            <span>Keep NaNs</span>
+          </label>
+          <label class="checkbox-item">
+            <input id="mustZInput" type="checkbox">
+            <span>Must z</span>
+          </label>
+          <label class="checkbox-item">
+            <input id="mustMInput" type="checkbox">
+            <span>Must M</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="control-group">
+        <div class="group-heading">
+          <h2>Required Catalogs</h2>
+          <span id="catalogCount" class="pill">0</span>
+        </div>
+        <div id="requiredCatalogs" class="catalog-list"></div>
+        <button id="applyFiltersBtn" class="primary-button full-width" type="button">Apply Filters</button>
+        <p class="hint">Search and filters update only when you click Apply Filters.</p>
+      </section>
+
+      <section class="control-group">
+        <div class="group-heading">
+          <h2>Build Data</h2>
+        </div>
+        <p class="hint">
+          Generate <code>site/data/clusters.json.gz</code> with
+          <code>python export_web_data.py</code> before publishing.
+        </p>
+      </section>
+    </aside>
+
+    <main class="content">
+      <section class="toolbar card">
+        <div class="toolbar-grid">
+          <label>
+            <span>Sort By</span>
+            <select id="sortBySelect">
+              <option value="name_best">name_best</option>
+              <option value="z_best">z_best</option>
+              <option value="mass_best">mass_best</option>
+              <option value="n_catalogs">n_catalogs</option>
+              <option value="ra_deg">ra_deg</option>
+            </select>
+          </label>
+          <label>
+            <span>Order</span>
+            <select id="sortOrderSelect">
+              <option value="Ascending">Ascending</option>
+              <option value="Descending">Descending</option>
+            </select>
+          </label>
+          <label>
+            <span>Table Columns</span>
+            <select id="tableColumnsSelect">
+              <option value="core">Core fields</option>
+              <option value="all">All fields</option>
+            </select>
+          </label>
+          <label>
+            <span>Display Limit</span>
+            <input id="displayLimitInput" type="number" min="50" max="20000" step="50" value="2000">
+          </label>
+        </div>
+        <div class="toolbar-actions">
+          <button id="applyViewBtn" class="ghost-button" type="button">Update View</button>
+          <button id="downloadCsvBtn" class="primary-button" type="button">Download Filtered CSV</button>
+        </div>
+      </section>
+
+      <section class="plots">
+        <article class="plot-card card">
+          <div class="card-head">
+            <h3>Sky Distribution</h3>
+          </div>
+          <div id="skyPlot" class="plot-target"></div>
+        </article>
+        <article class="plot-card card">
+          <div class="card-head">
+            <h3>Redshift Histogram</h3>
+          </div>
+          <div id="zPlot" class="plot-target"></div>
+        </article>
+        <article class="plot-card card">
+          <div class="card-head">
+            <h3>Mass vs Redshift</h3>
+          </div>
+          <div id="massPlot" class="plot-target"></div>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <article class="card table-card">
+          <div class="card-head">
+            <h3>Catalog Table</h3>
+            <p id="tableSummary">Showing 0 rows.</p>
+          </div>
+          <div class="table-wrap">
+            <table id="resultsTable">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="card details-card">
+          <div class="card-head">
+            <h3>Selected Cluster</h3>
+            <p>Click a row to update the summary and sky viewer.</p>
+          </div>
+
+          <div id="detailsSummary" class="summary-grid"></div>
+
+          <div class="viewer-toolbar">
+            <label>
+              <span>Aladin Survey</span>
+              <select id="surveySelect"></select>
+            </label>
+          </div>
+          <div id="aladinContainer" class="aladin-shell"></div>
+
+          <section class="details-section">
+            <div class="group-heading">
+              <h4>Alternate Names</h4>
+            </div>
+            <div id="alternateNames" class="chip-row"></div>
+          </section>
+
+          <section class="details-section">
+            <div class="group-heading">
+              <h4>All Fields</h4>
+            </div>
+            <div class="fields-wrap">
+              <table id="fieldsTable" class="fields-table">
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
