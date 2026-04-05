@@ -546,6 +546,8 @@ function renderPlots() {
         mode: "markers",
         lat: backgroundRows.map((row) => row.dec_deg),
         lon: backgroundRows.map((row) => row.ra_wrapped),
+        customdata: backgroundRows.map((row) => [row.name_best || "-", normalizeRaDegrees(row.ra_deg), row.dec_deg, row.master_id]),
+        hovertemplate: "%{customdata[0]}<br>RA=%{customdata[1]:.4f}<br>Dec=%{customdata[2]:.4f}<br>master_id=%{customdata[3]}<extra></extra>",
         marker: { color: "#E5ECF6", size: 2 },
         name: "All"
       },
@@ -554,6 +556,8 @@ function renderPlots() {
         mode: "markers",
         lat: displayRows.map((row) => row.dec_deg),
         lon: displayRows.map((row) => row.ra_wrapped),
+        customdata: displayRows.map((row) => [row.name_best || "-", normalizeRaDegrees(row.ra_deg), row.dec_deg, row.master_id]),
+        hovertemplate: "%{customdata[0]}<br>RA=%{customdata[1]:.4f}<br>Dec=%{customdata[2]:.4f}<br>master_id=%{customdata[3]}<extra></extra>",
         marker: { color: "#111111", size: 4, opacity: 0.6 },
         name: "Filtered"
       },
@@ -564,6 +568,8 @@ function renderPlots() {
               mode: "markers",
               lat: [selectedRow.dec_deg],
               lon: [selectedRow.ra_wrapped],
+              customdata: [[selectedRow.name_best || "-", normalizeRaDegrees(selectedRow.ra_deg), selectedRow.dec_deg, selectedRow.master_id]],
+              hovertemplate: "%{customdata[0]}<br>RA=%{customdata[1]:.4f}<br>Dec=%{customdata[2]:.4f}<br>master_id=%{customdata[3]}<extra></extra>",
               marker: {
                 color: "red",
                 size: 12,
@@ -979,6 +985,14 @@ function compactName(value) {
   return String(value || "")
     .toLowerCase()
     .replace(/[\s\-_()\[\]{},.;:|]/g, "");
+}
+
+function normalizeRaDegrees(value) {
+  const numeric = toNumber(value);
+  if (!Number.isFinite(numeric)) {
+    return NaN;
+  }
+  return ((numeric % 360) + 360) % 360;
 }
 
 function abellGroupAndNumber(name) {
