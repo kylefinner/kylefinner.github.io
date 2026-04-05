@@ -264,7 +264,12 @@ button:hover {
 
 .plots {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.main-stack {
+  display: grid;
   gap: 22px;
 }
 
@@ -273,8 +278,13 @@ button:hover {
   gap: 16px;
 }
 
+.stacked-actions {
+  display: grid;
+  gap: 10px;
+}
+
 .plot-target {
-  min-height: 300px;
+  min-height: 240px;
 }
 
 .workspace {

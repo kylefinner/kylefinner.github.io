@@ -75,6 +75,7 @@ function cacheElements() {
     "displayLimitInput",
     "applyViewBtn",
     "applyFiltersBtn",
+    "resetFiltersBtn",
     "downloadCsvBtn",
     "clearSpatialBtn",
     "resetZBtn",
@@ -88,7 +89,6 @@ function cacheElements() {
     "fieldsTable",
     "aladinContainer",
     "skyPlot",
-    "zPlot",
     "massPlot"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
@@ -139,6 +139,7 @@ function bindEvents() {
   });
 
   els.applyFiltersBtn.addEventListener("click", applyFilters);
+  els.resetFiltersBtn.addEventListener("click", resetAllFilters);
   els.applyViewBtn.addEventListener("click", applyViewSettings);
   els.clearSpatialBtn.addEventListener("click", () => clearSpatialInputs(false));
   els.resetZBtn.addEventListener("click", () => resetZInputs(false));
@@ -332,7 +333,6 @@ function renderEmpty() {
   els.aladinContainer.innerHTML = `<div class="aladin-empty">Generate site/data/clusters.json.gz to enable the viewer.</div>`;
   if (window.Plotly) {
     Plotly.purge(els.skyPlot);
-    Plotly.purge(els.zPlot);
     Plotly.purge(els.massPlot);
   }
 }
@@ -576,7 +576,7 @@ function renderPlots() {
         : [])
     ],
     {
-      height: 260,
+      height: 220,
       margin: { l: 0, r: 0, t: 0, b: 0 },
       showlegend: false,
       paper_bgcolor: "rgba(0,0,0,0)",
@@ -592,59 +592,12 @@ function renderPlots() {
     { displayModeBar: false, responsive: true }
   );
 
-  const allZValues = state.rawRows.map((row) => row.z_best).filter(Number.isFinite);
-  const filteredZValues = state.filteredRows.map((row) => row.z_best).filter(Number.isFinite);
-  const zShapes = [];
-  if (selectedRow && Number.isFinite(selectedRow.z_best)) {
-    zShapes.push({
-      type: "line",
-      x0: selectedRow.z_best,
-      x1: selectedRow.z_best,
-      y0: 0,
-      y1: 1,
-      yref: "paper",
-      line: { color: "red", width: 3 }
-    });
-  }
-  Plotly.react(
-    els.zPlot,
-    [
-      {
-        type: "histogram",
-        x: allZValues,
-        nbinsx: 50,
-        marker: { color: "rgba(127, 127, 127, 0.45)", line: { color: "rgba(127, 127, 127, 0.2)", width: 1 } },
-        name: "All",
-        opacity: 0.75
-      },
-      {
-        type: "histogram",
-        x: filteredZValues,
-        nbinsx: 50,
-        marker: { color: "dodgerblue", line: { color: "#B8860B", width: 1 } },
-        name: "Filtered",
-        opacity: 0.85
-      }
-    ],
-    {
-      height: 260,
-      margin: { l: 0, r: 0, t: 0, b: 42 },
-      showlegend: false,
-      barmode: "overlay",
-      paper_bgcolor: "rgba(0,0,0,0)",
-      plot_bgcolor: "rgba(0,0,0,0)",
-      xaxis: { title: "Redshift (z)" },
-      shapes: zShapes
-    },
-    { displayModeBar: false, responsive: true }
-  );
-
   if (allMassRows.length === 0) {
     Plotly.react(
       els.massPlot,
       [],
       {
-        height: 260,
+        height: 220,
         margin: { l: 0, r: 0, t: 0, b: 42 },
         annotations: [
           {
@@ -712,7 +665,7 @@ function renderPlots() {
         : [])
     ],
     {
-      height: 260,
+      height: 220,
       margin: { l: 0, r: 0, t: 0, b: 42 },
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "rgba(0,0,0,0)",
@@ -780,7 +733,6 @@ function renderDetails() {
     summaryCard("Redshift (z)", formatValue(row.z_best, "z_best")),
     summaryCard("Mass M500", Number.isFinite(row.mass_best) ? `${formatFloat(row.mass_best / MASS_UNIT, 4)} x 10^14 Msun` : "-"),
     summaryCard("Dyn State", row.dynamical_state || "-"),
-    summaryCard("Catalog Count", formatValue(row.n_catalogs, "n_catalogs")),
     summaryCard("RA", formatValue(row.ra_deg, "ra_deg")),
     summaryCard("Dec", formatValue(row.dec_deg, "dec_deg"))
   ].join("");
@@ -903,6 +855,22 @@ function clearSpatialInputs(shouldRender = true) {
   if (shouldRender) {
     applyFilters();
   }
+}
+
+function resetAllFilters() {
+  els.searchInput.value = "";
+  clearSpatialInputs(false);
+  resetZInputs(false);
+  resetMassInputs(false);
+  els.nMinInput.value = "0";
+  els.nMaxInput.value = String(Math.max(50, Math.ceil(state.defaults.nMax)));
+  els.keepNaNsInput.checked = true;
+  els.mustZInput.checked = false;
+  els.mustMInput.checked = false;
+  els.requiredCatalogs.querySelectorAll("input[type='checkbox']").forEach((input) => {
+    input.checked = false;
+  });
+  applyFilters();
 }
 
 function downloadFilteredCsv() {

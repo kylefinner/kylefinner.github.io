@@ -114,24 +114,18 @@
           <span id="catalogCount" class="pill">0</span>
         </div>
         <div id="requiredCatalogs" class="catalog-list"></div>
-        <button id="applyFiltersBtn" class="primary-button full-width" type="button">Apply Filters</button>
+        <div class="stacked-actions">
+          <button id="applyFiltersBtn" class="primary-button full-width" type="button">Apply Filters</button>
+          <button id="resetFiltersBtn" class="ghost-button full-width" type="button">Reset All</button>
+        </div>
         <p class="hint">Search and filters update only when you click Apply Filters.</p>
       </section>
 
       <section class="control-group">
         <div class="group-heading">
-          <h2>Build Data</h2>
+          <h2>View</h2>
         </div>
-        <p class="hint">
-          Generate <code>site/data/clusters.json.gz</code> with
-          <code>python export_web_data.py</code> before publishing.
-        </p>
-      </section>
-    </aside>
-
-    <main class="content">
-      <section class="toolbar card">
-        <div class="toolbar-grid">
+        <div class="two-up">
           <label>
             <span>Sort By</span>
             <select id="sortBySelect">
@@ -149,6 +143,8 @@
               <option value="Descending">Descending</option>
             </select>
           </label>
+        </div>
+        <div class="two-up">
           <label>
             <span>Table Columns</span>
             <select id="tableColumnsSelect">
@@ -161,51 +157,58 @@
             <input id="displayLimitInput" type="number" min="50" max="20000" step="50" value="2000">
           </label>
         </div>
-        <div class="toolbar-actions">
-          <button id="applyViewBtn" class="ghost-button" type="button">Update View</button>
-          <button id="downloadCsvBtn" class="primary-button" type="button">Download Filtered CSV</button>
+        <div class="stacked-actions">
+          <button id="applyViewBtn" class="ghost-button full-width" type="button">Update View</button>
+          <button id="downloadCsvBtn" class="primary-button full-width" type="button">Download Filtered CSV</button>
         </div>
       </section>
 
-      <section class="plots">
-        <article class="plot-card card">
-          <div class="card-head">
-            <h3>Sky Distribution</h3>
-          </div>
-          <div id="skyPlot" class="plot-target"></div>
-        </article>
-        <article class="plot-card card">
-          <div class="card-head">
-            <h3>Redshift Histogram</h3>
-          </div>
-          <div id="zPlot" class="plot-target"></div>
-        </article>
-        <article class="plot-card card">
-          <div class="card-head">
-            <h3>Mass vs Redshift</h3>
-          </div>
-          <div id="massPlot" class="plot-target"></div>
-        </article>
+      <section class="control-group">
+        <div class="group-heading">
+          <h2>Build Data</h2>
+        </div>
+        <p class="hint">
+          Generate <code>site/data/clusters.json.gz</code> with
+          <code>python export_web_data.py</code> before publishing.
+        </p>
       </section>
+    </aside>
 
+    <main class="content">
       <section class="workspace">
-        <article class="card table-card">
-          <div class="card-head">
-            <h3>Catalog Table</h3>
-            <p id="tableSummary">Showing 0 rows.</p>
-          </div>
-          <div class="table-wrap">
-            <table id="resultsTable">
-              <thead></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </article>
+        <div class="main-stack">
+          <section class="plots">
+            <article class="plot-card card">
+              <div class="card-head">
+                <h3>Sky Distribution</h3>
+              </div>
+              <div id="skyPlot" class="plot-target"></div>
+            </article>
+            <article class="plot-card card">
+              <div class="card-head">
+                <h3>Mass vs Redshift</h3>
+              </div>
+              <div id="massPlot" class="plot-target"></div>
+            </article>
+          </section>
+
+          <article class="card table-card">
+            <div class="card-head">
+              <h3>Catalog Table</h3>
+              <p id="tableSummary">Showing 0 rows.</p>
+            </div>
+            <div class="table-wrap">
+              <table id="resultsTable">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
 
         <article class="card details-card">
           <div class="card-head">
             <h3>Selected Cluster</h3>
-            <p>Click a row to update the summary and sky viewer.</p>
           </div>
 
           <div id="detailsSummary" class="summary-grid"></div>
