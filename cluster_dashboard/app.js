@@ -17,7 +17,7 @@ const SURVEYS = {
   "DSS2 color": "P/DSS2/color",
   "DESI Legacy Survey (DR10) color": "P/DESI-Legacy-Surveys/DR10/color",
   "2MASS color": "P/2MASS/color",
-  "WISE color": "P/WISE/color",
+  "WISE color": "P/allWISE/color",
   "Aladin default": null
 };
 
