@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MC2 Image Archive</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #04070d;
+      --panel: rgba(9, 16, 28, 0.82);
+      --panel-border: rgba(140, 180, 255, 0.18);
+      --text: #f5f7fb;
+      --muted: #a8b2c7;
+      --accent: #76d1ff;
+      --accent-strong: #bfe8ff;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at top, rgba(58, 101, 165, 0.35), transparent 40%),
+        linear-gradient(180deg, #07111e 0%, var(--bg) 55%, #020406 100%);
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      overflow: hidden;
+    }
+
+    a {
+      color: var(--accent-strong);
+      text-decoration: none;
+    }
+
+    a:hover { color: white; }
+
+    #viewer {
+      position: fixed;
+      inset: 0;
+      background: transparent;
+    }
+
+    #contourLayer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    #contourSvg {
+      position: absolute;
+      left: 0;
+      top: 0;
+      overflow: visible;
+    }
+
+    .panel {
+      position: fixed;
+      z-index: 5;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    #toolbar {
+      top: 18px;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      gap: 16px;
+      align-items: end;
+      padding: 16px 18px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 220px;
+    }
+
+    .toolbar-grow {
+      flex: 1 1 280px;
+      min-width: 260px;
+    }
+
+    .eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1.1;
+      font-weight: 600;
+    }
+
+    label, .small {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    select, button, .button-link {
+      border: 1px solid rgba(176, 203, 255, 0.18);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      padding: 0.8rem 0.95rem;
+      font: inherit;
+    }
+
+    select { width: 100%; }
+
+    button, .button-link {
+      cursor: pointer;
+      transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    button:hover, .button-link:hover {
+      background: rgba(118, 209, 255, 0.14);
+      border-color: rgba(191, 232, 255, 0.4);
+      transform: translateY(-1px);
+      color: white;
+    }
+
+    #statusCard {
+      left: 18px;
+      bottom: 18px;
+      width: min(360px, calc(100vw - 36px));
+      padding: 14px 16px;
+    }
+
+    #metaCard {
+      right: 18px;
+      bottom: 18px;
+      width: min(360px, calc(100vw - 36px));
+      padding: 18px;
+    }
+
+    #clusterName {
+      margin: 0 0 0.4rem;
+      font-size: 1.3rem;
+      line-height: 1.2;
+    }
+
+    #metaList {
+      margin: 0.8rem 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.45rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    #metaList strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    #controlsCard {
+      top: 122px;
+      right: 18px;
+      width: min(360px, calc(100vw - 36px));
+      padding: 18px;
+      z-index: 6;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .control-stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid rgba(176, 203, 255, 0.18);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      padding: 0.8rem 0.95rem;
+      font: inherit;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .section-title {
+      margin-top: 14px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    #controlsUnavailable {
+      margin-top: 10px;
+    }
+
+    @media (max-width: 820px) {
+      #toolbar {
+        align-items: stretch;
+      }
+
+      #statusCard, #metaCard {
+        width: auto;
+        left: 18px;
+        right: 18px;
+      }
+
+      #controlsCard {
+        position: static;
+        width: auto;
+        margin: 18px;
+      }
+
+      #metaCard {
+        bottom: 96px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="viewer"></div>
+  <div id="contourLayer"><svg id="contourSvg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+  <section id="toolbar" class="panel">
+    <div class="toolbar-group toolbar-grow">
+      <div class="eyebrow">Merging Cluster Collaboration</div>
+      <h1>MC2 Image Archive</h1>
+      <div class="small">Tiled optical color mosaics of merging galaxy clusters.</div>
+    </div>
+
+    <div class="toolbar-group">
+      <label for="clusterSelect">Cluster</label>
+      <select id="clusterSelect" aria-label="Select cluster"></select>
+    </div>
+
+    <div class="toolbar-group">
+      <label>&nbsp;</label>
+      <button id="homeBtn" type="button">Fit Image</button>
+    </div>
+
+    <div class="toolbar-group">
+      <label>&nbsp;</label>
+      <a class="button-link" href="index.html">Home</a>
+    </div>
+  </section>
+
+  <section id="statusCard" class="panel">
+    <div class="eyebrow">Image State</div>
+    <div id="statusText" class="small">Loading index...</div>
+  </section>
+
+  <aside id="metaCard" class="panel">
+    <div class="eyebrow">Cluster</div>
+    <h2 id="clusterName">Loading...</h2>
+    <div id="clusterDescription" class="small">Image metadata.</div>
+    <ul id="metaList"></ul>
+  </aside>
+
+  <aside id="controlsCard" class="panel">
+    <div class="eyebrow">WCS Tools</div>
+    <div id="controlsUnavailable" class="small">WCS and contour services are not available in the static image archive.</div>
+
+    <div id="controlsActive" hidden>
+      <div class="section-title">Go To RA/Dec</div>
+      <div class="control-grid">
+        <label>
+          <span class="small">RA (deg)</span>
+          <input id="raInput" type="text" placeholder="170.215">
+        </label>
+        <label>
+          <span class="small">Dec (deg)</span>
+          <input id="decInput" type="text" placeholder="43.091">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="gotoBtn" type="button">Go</button>
+        <button id="clearBtn" type="button">Clear Position</button>
+      </div>
+
+      <div class="section-title">Mass-Map Contours</div>
+      <div class="control-grid">
+        <label>
+          <span class="small">Lower</span>
+          <input id="contourLower" type="number" step="any">
+        </label>
+        <label>
+          <span class="small">Upper</span>
+          <input id="contourUpper" type="number" step="any">
+        </label>
+      </div>
+      <div class="control-grid">
+        <label>
+          <span class="small">Count</span>
+          <input id="contourCount" type="number" min="1" max="100" step="1" value="6">
+        </label>
+        <label>
+          <span class="small">Color</span>
+          <input id="contourColor" type="color" value="#00ffff">
+        </label>
+      </div>
+      <div class="button-row">
+        <button id="loadContoursBtn" type="button">Draw Contours</button>
+        <button id="clearContoursBtn" type="button">Clear Contours</button>
+      </div>
+    </div>
+  </aside>
+
+  <script src="assets/js/mc2-viewer.js"></script>
+</body>
+</html>

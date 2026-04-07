@@ -1,0 +1,14 @@
+{
+  "cluster": "zwcl1856",
+  "display_name": "zwcl1856_color",
+  "source_image": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/zwcl1856_color.jpg",
+  "source_head": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/zwcl1856.head",
+  "width": 9877,
+  "height": 10176,
+  "tile_size": 512,
+  "format": "jpg",
+  "quality": 85,
+  "max_level": 5,
+  "total_tiles": 539,
+  "tile_url_template": "/tiles/zwcl1856/{z}/{x}/{y}.jpg"
+}

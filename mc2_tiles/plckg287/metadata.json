@@ -1,0 +1,14 @@
+{
+  "cluster": "plckg287",
+  "display_name": "plckg287_color",
+  "source_image": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/plckg287_color.jpg",
+  "source_head": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/plckg287.head",
+  "width": 9693,
+  "height": 9698,
+  "tile_size": 512,
+  "format": "jpg",
+  "quality": 85,
+  "max_level": 5,
+  "total_tiles": 500,
+  "tile_url_template": "/tiles/plckg287/{z}/{x}/{y}.jpg"
+}

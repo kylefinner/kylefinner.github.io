@@ -1,0 +1,14 @@
+{
+  "cluster": "cizaj2242",
+  "display_name": "cizaj2242_color",
+  "source_image": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/cizaj2242_color.jpg",
+  "source_head": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/cizaj2242.head",
+  "width": 10164,
+  "height": 9745,
+  "tile_size": 512,
+  "format": "jpg",
+  "quality": 85,
+  "max_level": 5,
+  "total_tiles": 539,
+  "tile_url_template": "/tiles/cizaj2242/{z}/{x}/{y}.jpg"
+}

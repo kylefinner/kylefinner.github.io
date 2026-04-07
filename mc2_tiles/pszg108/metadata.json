@@ -1,0 +1,14 @@
+{
+  "cluster": "pszg108",
+  "display_name": "pszg108_color",
+  "source_image": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/pszg108_color.jpg",
+  "source_head": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/pszg108.head",
+  "width": 14000,
+  "height": 14000,
+  "tile_size": 512,
+  "format": "jpg",
+  "quality": 85,
+  "max_level": 5,
+  "total_tiles": 1050,
+  "tile_url_template": "/tiles/pszg108/{z}/{x}/{y}.jpg"
+}

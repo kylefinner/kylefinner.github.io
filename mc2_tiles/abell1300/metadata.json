@@ -1,0 +1,14 @@
+{
+  "cluster": "abell1300",
+  "display_name": "abell1300_color",
+  "source_image": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/abell1300_color.jpg",
+  "source_head": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/abell1300.head",
+  "width": 9694,
+  "height": 9697,
+  "tile_size": 512,
+  "format": "jpg",
+  "quality": 85,
+  "max_level": 5,
+  "total_tiles": 500,
+  "tile_url_template": "/tiles/abell1300/{z}/{x}/{y}.jpg"
+}

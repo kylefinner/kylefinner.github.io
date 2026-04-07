@@ -1,0 +1,14 @@
+{
+  "cluster": "rxcj1314",
+  "display_name": "rxcj1314_color",
+  "source_image": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/rxcj1314_color.jpg",
+  "source_head": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/rxcj1314.head",
+  "width": 10166,
+  "height": 9697,
+  "tile_size": 512,
+  "format": "jpg",
+  "quality": 85,
+  "max_level": 5,
+  "total_tiles": 519,
+  "tile_url_template": "/tiles/rxcj1314/{z}/{x}/{y}.jpg"
+}

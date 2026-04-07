@@ -1,0 +1,14 @@
+{
+  "cluster": "1rxsj0603",
+  "display_name": "1rxsj0603_color",
+  "source_image": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/1rxsj0603_color.jpg",
+  "source_head": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/1rxsj0603.head",
+  "width": 10146,
+  "height": 9700,
+  "tile_size": 512,
+  "format": "jpg",
+  "quality": 85,
+  "max_level": 5,
+  "total_tiles": 519,
+  "tile_url_template": "/tiles/1rxsj0603/{z}/{x}/{y}.jpg"
+}

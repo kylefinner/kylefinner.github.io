@@ -1,0 +1,14 @@
+{
+  "cluster": "abell2061",
+  "display_name": "abell2061_color",
+  "source_image": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/abell2061_color.jpg",
+  "source_head": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/abell2061.head",
+  "width": 10148,
+  "height": 9694,
+  "tile_size": 512,
+  "format": "jpg",
+  "quality": 85,
+  "max_level": 5,
+  "total_tiles": 519,
+  "tile_url_template": "/tiles/abell2061/{z}/{x}/{y}.jpg"
+}

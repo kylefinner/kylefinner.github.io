@@ -1,0 +1,14 @@
+{
+  "cluster": "macs1149",
+  "display_name": "macs1149_color",
+  "source_image": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/macs1149_color.jpg",
+  "source_head": "/Users/kyle/Work/MC2/Merging_Clusters_Website_Files_Cropped_15pct/macs1149.head",
+  "width": 6736,
+  "height": 8404,
+  "tile_size": 512,
+  "format": "jpg",
+  "quality": 85,
+  "max_level": 5,
+  "total_tiles": 330,
+  "tile_url_template": "/tiles/macs1149/{z}/{x}/{y}.jpg"
+}
