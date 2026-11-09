@@ -21,6 +21,9 @@
   const contourColorInput = document.getElementById("contourColor");
   const loadContoursBtn = document.getElementById("loadContoursBtn");
   const clearContoursBtn = document.getElementById("clearContoursBtn");
+  const infoBtn = document.getElementById("infoBtn");
+  const hideUiBtn = document.getElementById("hideUiBtn");
+  const showUiBtn = document.getElementById("showUiBtn");
 
   let viewer = null;
   let clusterMap = new Map();
@@ -47,9 +50,23 @@
     return "Optical color mosaic; coordinates and dimensions follow the tile index.";
   }
 
+  function setDetailsOpen(open) {
+    document.body.classList.toggle("details-open", open);
+    infoBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function setUiHidden(hidden) {
+    document.body.classList.toggle("ui-hidden", hidden);
+    (hidden ? showUiBtn : hideUiBtn).focus();
+  }
+
   function setStatus(message, isError) {
     statusText.textContent = message;
     statusText.style.color = isError ? "#ffb0b0" : "";
+    if (isError) {
+      // On small screens the status card lives in the collapsed Info drawer.
+      setDetailsOpen(true);
+    }
   }
 
   async function fetchJson(url, options) {
@@ -265,6 +282,18 @@
       if (viewer) {
         viewer.viewport.goHome(true);
       }
+    });
+
+    infoBtn.addEventListener("click", function () {
+      setDetailsOpen(!document.body.classList.contains("details-open"));
+    });
+
+    hideUiBtn.addEventListener("click", function () {
+      setUiHidden(true);
+    });
+
+    showUiBtn.addEventListener("click", function () {
+      setUiHidden(false);
     });
 
     clusterSelect.addEventListener("change", function () {

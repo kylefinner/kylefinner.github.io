@@ -92,6 +92,37 @@
       min-width: 260px;
     }
 
+    .toolbar-hide {
+      min-width: 0;
+    }
+
+    /* The Info toggle only matters on small screens, where the cards are folded away. */
+    .toolbar-info {
+      display: none;
+    }
+
+    #infoBtn[aria-expanded="true"] {
+      background: rgba(118, 209, 255, 0.18);
+      border-color: rgba(191, 232, 255, 0.5);
+    }
+
+    #showUiBtn {
+      display: none;
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 7;
+      padding: 0.6rem 0.9rem;
+      background: var(--panel);
+      border-color: var(--panel-border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    body.ui-hidden #showUiBtn {
+      display: inline-flex;
+    }
+
     .eyebrow {
       font-size: 0.72rem;
       letter-spacing: 0.16em;
@@ -131,11 +162,15 @@
       text-decoration: none;
     }
 
-    button:hover, .button-link:hover {
-      background: rgba(118, 209, 255, 0.14);
-      border-color: rgba(191, 232, 255, 0.4);
-      transform: translateY(-1px);
-      color: white;
+    /* Only on devices with a real pointer; touch screens leave :hover "stuck"
+       on the last-tapped button, which would make Info look open after closing it. */
+    @media (hover: hover) {
+      button:hover, .button-link:hover {
+        background: rgba(118, 209, 255, 0.14);
+        border-color: rgba(191, 232, 255, 0.4);
+        transform: translateY(-1px);
+        color: white;
+      }
     }
 
     #statusCard {
@@ -222,26 +257,122 @@
       margin-top: 10px;
     }
 
-    @media (max-width: 820px) {
+    /* Phones (portrait or landscape) and narrow tablets: a compact toolbar,
+       with the status / cluster / WCS cards folded into a drawer behind "Info". */
+    @media (max-width: 820px), (max-height: 520px) {
       #toolbar {
-        align-items: stretch;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        padding: 10px;
+        border-radius: 14px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-areas:
+          "title  home hide"
+          "select fit  info";
+        gap: 8px;
+        align-items: center;
       }
 
-      #statusCard, #metaCard {
-        width: auto;
-        left: 18px;
-        right: 18px;
+      .toolbar-group {
+        min-width: 0;
       }
 
-      #controlsCard {
+      .toolbar-grow { grid-area: title; padding-left: 4px; }
+      .toolbar-select { grid-area: select; }
+      .toolbar-fit { grid-area: fit; }
+      .toolbar-info { grid-area: info; display: flex; }
+      .toolbar-home { grid-area: home; }
+      .toolbar-hide { grid-area: hide; }
+
+      #toolbar .eyebrow,
+      #toolbar .small,
+      #toolbar label {
+        display: none;
+      }
+
+      h1 {
+        font-size: 1.1rem;
+      }
+
+      #toolbar button,
+      #toolbar .button-link {
+        padding: 0.55rem 0.7rem;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        white-space: nowrap;
+      }
+
+      /* Keep the select at 16px so iOS doesn't zoom the page on focus. */
+      #clusterSelect {
+        padding: 0.55rem 0.7rem;
+        border-radius: 10px;
+      }
+
+      #showUiBtn {
+        top: 10px;
+        right: 10px;
+      }
+
+      #detailsDock {
+        display: none;
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        z-index: 6;
+        max-height: 55vh;
+        max-height: 55dvh;
+        overflow-y: auto;
+        flex-direction: column;
+        gap: 8px;
+        border-radius: 14px;
+      }
+
+      body.details-open #detailsDock {
+        display: flex;
+      }
+
+      #detailsDock .panel {
         position: static;
         width: auto;
-        margin: 18px;
+        margin: 0;
+        padding: 12px 14px;
+        border-radius: 14px;
       }
 
-      #metaCard {
-        bottom: 96px;
+      #metaCard { order: 1; }
+      #statusCard { order: 2; }
+      #controlsCard { order: 3; }
+
+      /* Shorter button labels so the cluster picker has room. */
+      .wide-only {
+        display: none;
       }
+    }
+
+    /* Landscape phones: there's width to spare but little height, so use one row. */
+    @media (max-height: 520px) and (min-width: 600px) {
+      #toolbar {
+        grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
+        grid-template-areas: "title select fit info home hide";
+      }
+
+      #detailsDock {
+        left: auto;
+        width: min(360px, calc(100vw - 20px));
+        max-height: calc(100vh - 90px);
+        max-height: calc(100dvh - 90px);
+      }
+    }
+
+    /* "Hide menu" state. Kept last, with ID selectors, so it wins over the
+       layout rules above (e.g. #toolbar's display: flex / grid). */
+    body.ui-hidden #toolbar,
+    body.ui-hidden #detailsDock,
+    body.ui-hidden .panel {
+      display: none;
     }
   </style>
 </head>
@@ -256,22 +387,35 @@
       <div class="small">Tiled optical color mosaics of merging galaxy clusters.</div>
     </div>
 
-    <div class="toolbar-group">
+    <div class="toolbar-group toolbar-select">
       <label for="clusterSelect">Cluster</label>
       <select id="clusterSelect" aria-label="Select cluster"></select>
     </div>
 
-    <div class="toolbar-group">
+    <div class="toolbar-group toolbar-fit">
       <label>&nbsp;</label>
-      <button id="homeBtn" type="button">Fit Image</button>
+      <button id="homeBtn" type="button" aria-label="Fit image">Fit<span class="wide-only">&nbsp;Image</span></button>
     </div>
 
-    <div class="toolbar-group">
+    <div class="toolbar-group toolbar-info">
+      <label>&nbsp;</label>
+      <button id="infoBtn" type="button" aria-expanded="false" aria-controls="detailsDock">Info</button>
+    </div>
+
+    <div class="toolbar-group toolbar-home">
       <label>&nbsp;</label>
       <a class="button-link" href="index.html">Home</a>
     </div>
+
+    <div class="toolbar-group toolbar-hide">
+      <label>&nbsp;</label>
+      <button id="hideUiBtn" type="button" aria-label="Hide menu" title="Hide the menu to see the full image">Hide<span class="wide-only">&nbsp;menu</span></button>
+    </div>
   </section>
 
+  <button id="showUiBtn" type="button" title="Show the menu">Show menu</button>
+
+  <div id="detailsDock">
   <section id="statusCard" class="panel">
     <div class="eyebrow">Image State</div>
     <div id="statusText" class="small">Loading index...</div>
@@ -332,6 +476,7 @@
       </div>
     </div>
   </aside>
+  </div>
 
   <script src="assets/js/mc2-viewer.js"></script>
 </body>
