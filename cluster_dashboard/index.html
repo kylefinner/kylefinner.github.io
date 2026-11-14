@@ -14,9 +14,9 @@
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@400;500;600&display=swap"
     rel="stylesheet"
   >
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=202611141516">
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
-  <script src="./app.js" defer></script>
+  <script src="./app.js?v=202611141516" defer></script>
 </head>
 <body>
   <div class="page-shell">
@@ -203,6 +203,10 @@
 
     <main class="content">
       <section class="card view-bar" aria-label="Plot options">
+        <div class="quick-row">
+          <span class="quick-label">Quick filters</span>
+          <div id="quickFilters" class="quick-filters" role="group" aria-label="Quick filters"></div>
+        </div>
         <div id="statTiles" class="stat-row"></div>
         <div class="view-controls">
           <label class="inline-label">

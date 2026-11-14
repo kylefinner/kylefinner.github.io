@@ -171,6 +171,42 @@ const FOOTPRINTS = {
 };
 const RADIO_GROUPS = new Set(["LoTSS-DR2 (radio)", "MeerKAT MGCLS (radio)", "MC2 (radio relics)"]);
 
+// One-click filters above the plots; each toggles the matching sidebar control and applies at once.
+const box = (root, value) => root.querySelector(`input[value="${value}"]`);
+const QUICK_FILTERS = [
+  { key: "euclid_wide", label: "Euclid Wide", get: () => box(els.footprintChecks, "euclid_wide").checked,
+    set: (on) => { box(els.footprintChecks, "euclid_wide").checked = on; } },
+  { key: "euclid_dr1", label: "Euclid DR1", title: "Approximate, from the reference-survey footprint",
+    get: () => box(els.footprintChecks, "euclid_dr1").checked, set: (on) => { box(els.footprintChecks, "euclid_dr1").checked = on; } },
+  { key: "euclid_q1", label: "Euclid Q1", get: () => box(els.footprintChecks, "euclid_q1").checked,
+    set: (on) => { box(els.footprintChecks, "euclid_q1").checked = on; } },
+  { key: "sz", label: "SZ-detected", get: () => box(els.familyChecks, "SZ").checked,
+    set: (on) => { box(els.familyChecks, "SZ").checked = on; } },
+  { key: "specz", label: "Spectroscopic z", get: () => els.zRequireSelect.value === "spec",
+    set: (on) => { els.zRequireSelect.value = on ? "spec" : "any"; } },
+  { key: "radio", label: "Radio halo / relic", get: () => box(els.radioChecks, "halo").checked && box(els.radioChecks, "relic").checked,
+    set: (on) => { box(els.radioChecks, "halo").checked = on; box(els.radioChecks, "relic").checked = on; } }
+];
+
+function renderQuickFilters() {
+  els.quickFilters.innerHTML = QUICK_FILTERS.map((q) =>
+    `<button type="button" class="quick-btn" data-quick="${q.key}" aria-pressed="false"${q.title ? ` title="${esc(q.title)}"` : ""}>${esc(q.label)}</button>`).join("");
+  els.quickFilters.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-quick]");
+    if (!btn) return;
+    const q = QUICK_FILTERS.find((item) => item.key === btn.dataset.quick);
+    q.set(!q.get());
+    applyFilters();
+  });
+}
+
+function syncQuickFilters() {
+  els.quickFilters.querySelectorAll("[data-quick]").forEach((btn) => {
+    const q = QUICK_FILTERS.find((item) => item.key === btn.dataset.quick);
+    btn.setAttribute("aria-pressed", String(q.get()));
+  });
+}
+
 function probeAllSurveys() {
   if (surveysProbed) return;
   surveysProbed = true;
@@ -226,7 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "externalLinks", "surveySelect", "aladinLegend", "aladinContainer", "membersTable", "fieldsTable",
     "panelsBtn", "panelsWrap", "panelsGrid", "panelFovSelect",
     "viewStaticBtn", "viewAladinBtn", "staticLayerLabel", "staticLayerSelect", "surveyLabel", "staticView",
-    "radioChecks", "radioCandInput", "surveyFilters", "footprintChecks"
+    "radioChecks", "radioCandInput", "surveyFilters", "footprintChecks", "quickFilters"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
@@ -236,6 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("moreFilters").open = false; // phones: search first, other filters on demand
   }
   bindEvents();
+  renderQuickFilters();
   load().catch((error) => {
     console.error(error);
     setStatus("Could not load the catalog (data/clusters.json.gz).");
@@ -337,6 +374,12 @@ function bindEvents() {
   els.filterForm.addEventListener("submit", (event) => {
     event.preventDefault();
     applyFilters();
+  });
+  // checkboxes and menus apply immediately; typed fields apply with Enter or the Apply button
+  els.filterForm.addEventListener("change", (event) => {
+    const t = event.target;
+    if (t.id === "massSourceSelect") return; // has its own handler
+    if (t.matches('input[type="checkbox"], select')) applyFilters();
   });
   els.resetFiltersBtn.addEventListener("click", resetFilters);
   els.massSourceSelect.addEventListener("change", () => {
@@ -594,6 +637,7 @@ function sortFiltered() {
 /* ------------------------------------------------------------------ render */
 
 function renderAll() {
+  syncQuickFilters();
   setStatus(statusText());
   renderStats();
   renderLegend();

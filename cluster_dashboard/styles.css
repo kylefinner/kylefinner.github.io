@@ -1220,3 +1220,45 @@ a.mw-title {
   padding: 4px 6px;
   font-size: 0.74rem;
 }
+
+/* quick filters (above the plots) */
+.quick-row {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.quick-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.quick-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-btn {
+  width: auto;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: var(--card);
+  color: var(--text-2);
+}
+
+.quick-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.quick-btn[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
