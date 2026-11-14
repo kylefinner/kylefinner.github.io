@@ -9,16 +9,16 @@ const META_URL = "./data/catalogs.json";
 const DEFAULT_DISPLAY_LIMIT = 1000;
 
 // Chart tokens. Categorical slots validated (dataviz validator, --pairs all, light
-// surface #fcf8ef): blue / orange / aqua. Neutral grays carry "other" and context.
-const INK = "#1e1a14";
-const INK_2 = "#52514e";
-const MUTED = "#898781";
-const HAIR = "rgba(57, 47, 34, 0.12)";
-const AXIS = "#c3c2b7";
-const SURFACE = "#fcf8ef";
+// surface #ffffff): blue / orange / aqua. Neutral grays carry "other" and context.
+const INK = "#1d2129";
+const INK_2 = "#4b515c";
+const MUTED = "#7a808b";
+const HAIR = "#eceef2";
+const AXIS = "#cdd1d8";
+const SURFACE = "#ffffff";
 const SLOT = { blue: "#2a78d6", orange: "#eb6834", aqua: "#1baf7a" };
-const OTHER = "#8d877b";
-const CONTEXT = "#d2ccbd";
+const OTHER = "#8a8f98";
+const CONTEXT = "#d5d9e0";
 
 const FAMILY_STYLE = {
   SZ: { color: SLOT.blue, shape: "circle", label: "SZ" },
@@ -94,6 +94,22 @@ const CUTOUT_PANELS = [
   { key: "cut_vlass", title: "VLASS (epoch 1.2)", band: "3 GHz, 2.5″", kind: "Radio", layer: "vlass1.2", covers: (r) => r.dec > -40 }
 ];
 
+// Aladin Lite is loaded only when needed (interactive view or panels), from npm via jsDelivr,
+// so the page never waits on it and does not depend on the CDS web server.
+const ALADIN_URL = "https://cdn.jsdelivr.net/npm/aladin-lite@3.8.2/dist/aladin.js";
+let aladinLib = null;
+function loadAladin(timeoutMs = 15000) {
+  if (!aladinLib) {
+    aladinLib = import(ALADIN_URL).then((mod) => {
+      window.A = mod.default;
+      return window.A.init.then(() => window.A);
+    });
+    aladinLib.catch(() => { aladinLib = null; });
+  }
+  const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs));
+  return Promise.race([aladinLib, timeout]);
+}
+
 const hipsProbe = {};
 // First mirror whose /properties answers OK. A definite HTTP error (e.g. 404) rules a mirror
 // out; a network/TLS hiccup does not - such a mirror is still tried if nothing answered OK.
@@ -122,7 +138,10 @@ function resolveHips(survey) {
   return hipsProbe[survey.key];
 }
 
+let surveysProbed = false;
 function probeAllSurveys() {
+  if (surveysProbed) return;
+  surveysProbed = true;
   HIPS_SURVEYS.forEach((h) => resolveHips(h).then((url) => {
     const opt = els.surveySelect.querySelector(`option[value="${h.key}"]`);
     if (opt && !url) {
@@ -156,6 +175,7 @@ const state = {
   shards: {},
   aladin: null,
   aladinReady: null,
+  viewMode: null, // null = automatic (static image inside the Legacy footprint), or "static" / "aladin"
   plotsBound: false,
   generatedAt: null
 };
@@ -172,13 +192,16 @@ document.addEventListener("DOMContentLoaded", () => {
     "tableSummary", "displayLimitInput", "downloadCsvBtn", "downloadTargetsBtn", "resultsTable",
     "detailName", "detailAliases", "detailFlags", "detailCoords", "detailFacts", "massTable",
     "externalLinks", "surveySelect", "aladinLegend", "aladinContainer", "membersTable", "fieldsTable",
-    "panelsBtn", "panelsWrap", "panelsGrid", "panelFovSelect"
+    "panelsBtn", "panelsWrap", "panelsGrid", "panelFovSelect",
+    "viewStaticBtn", "viewAladinBtn", "staticLayerLabel", "staticLayerSelect", "surveyLabel", "staticView"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
   els.surveySelect.innerHTML = HIPS_SURVEYS
     .map((h) => `<option value="${h.key}">${esc(h.title)} (${esc(h.band)})</option>`).join("");
-  probeAllSurveys();
+  if (window.matchMedia("(max-width: 1000px)").matches) {
+    document.getElementById("moreFilters").open = false; // phones: search first, other filters on demand
+  }
   bindEvents();
   load().catch((error) => {
     console.error(error);
@@ -287,6 +310,12 @@ function bindEvents() {
     if (open && row) renderPanels(row);
     if (!open) els.panelsGrid.innerHTML = "";
   });
+  els.viewStaticBtn.addEventListener("click", () => setViewMode("static"));
+  els.viewAladinBtn.addEventListener("click", () => setViewMode("aladin"));
+  els.staticLayerSelect.addEventListener("change", () => {
+    const row = state.byId.get(state.selectedId);
+    if (row) renderStatic(row);
+  });
   els.panelFovSelect.addEventListener("change", () => {
     const row = state.byId.get(state.selectedId);
     if (row && !els.panelsWrap.hidden) renderPanels(row);
@@ -296,7 +325,9 @@ function bindEvents() {
     if (!btn) return;
     els.surveySelect.value = btn.dataset.survey;
     state.surveyChosen = true;
-    setAladinSurvey();
+    state.viewMode = "aladin";
+    const current = state.byId.get(state.selectedId);
+    if (current) renderViewer(current);
     els.aladinContainer.scrollIntoView({ behavior: "smooth", block: "center" });
   });
   els.posInput.addEventListener("input", () => {
@@ -529,11 +560,11 @@ function renderLegend() {
 /* ---------- plots */
 
 function plotFont() {
-  return { family: "IBM Plex Mono, SFMono-Regular, monospace", size: 11, color: INK_2 };
+  return { family: "Poppins, system-ui, sans-serif", size: 11, color: INK_2 };
 }
 
 function hoverLabel() {
-  return { bgcolor: "#fffdf8", bordercolor: AXIS, font: { family: "Space Grotesk, sans-serif", size: 12, color: INK } };
+  return { bgcolor: "#ffffff", bordercolor: AXIS, font: { family: "Poppins, system-ui, sans-serif", size: 12, color: INK } };
 }
 
 function sample(rows, max) {
@@ -630,7 +661,7 @@ function skyFrameTraces() {
   SKY_FRAME = [
     { type: "scatter", mode: "lines", x: grid.x, y: grid.y, line: { color: HAIR, width: 1 }, hoverinfo: "skip", showlegend: false },
     { type: "scatter", mode: "lines", x: edge.x, y: edge.y, line: { color: AXIS, width: 1 }, hoverinfo: "skip", showlegend: false },
-    { type: "scatter", mode: "lines", x: gp.x, y: gp.y, line: { color: "#a59d8c", width: 1.5 }, hoverinfo: "skip", showlegend: false }
+    { type: "scatter", mode: "lines", x: gp.x, y: gp.y, line: { color: "#a7adb7", width: 1.5 }, hoverinfo: "skip", showlegend: false }
   ];
   return SKY_FRAME;
 }
@@ -641,14 +672,14 @@ function skyLabels() {
     const w = ra > 180 ? ra - 360 : ra;
     if (Math.abs(w) === 180) continue;
     const [x, y] = mollweide(w, 0);
-    notes.push({ x, y, text: `${ra / 15}h`, showarrow: false, yshift: -9, font: { size: 10, color: INK_2 }, bgcolor: "rgba(252,248,239,0.75)" });
+    notes.push({ x, y, text: `${ra / 15}h`, showarrow: false, yshift: -9, font: { size: 10, color: INK_2 }, bgcolor: "rgba(255,255,255,0.8)" });
   }
   for (const dec of [-60, -30, 30, 60]) {
     const [x, y] = mollweide(179.999, dec);
     notes.push({ x, y, text: `${dec > 0 ? "+" : ""}${dec}°`, showarrow: false, xanchor: "right", xshift: -4, font: { size: 10, color: MUTED } });
   }
   const [gx, gy] = mollweide(...wrapRaDec(galacticToEquatorial(60, 0)));
-  notes.push({ x: gx, y: gy, text: "Galactic plane", showarrow: false, xanchor: "left", xshift: 6, font: { size: 10, color: INK_2 }, bgcolor: "rgba(252,248,239,0.75)" });
+  notes.push({ x: gx, y: gy, text: "Galactic plane", showarrow: false, xanchor: "left", xshift: 6, font: { size: 10, color: INK_2 }, bgcolor: "rgba(255,255,255,0.8)" });
   return notes;
 }
 
@@ -855,12 +886,104 @@ function renderDetails(row) {
 
   renderMembers(row);
   if (!els.panelsWrap.hidden) renderPanels(row);
+  renderViewer(row);
+}
+
+/* ---------- image viewer: static cutout (fast, no CDS) or interactive Aladin (opt-in) */
+
+function currentViewMode(row) {
+  return state.viewMode || (inLegacy(row) ? "static" : "aladin");
+}
+
+function setViewMode(mode) {
+  state.viewMode = mode;
+  const row = state.byId.get(state.selectedId);
+  if (row) renderViewer(row);
+}
+
+function renderViewer(row) {
+  const mode = currentViewMode(row);
+  const isStatic = mode === "static";
+  els.viewStaticBtn.setAttribute("aria-pressed", String(isStatic));
+  els.viewAladinBtn.setAttribute("aria-pressed", String(!isStatic));
+  els.staticLayerLabel.hidden = !isStatic;
+  els.surveyLabel.hidden = isStatic;
+  els.staticView.hidden = !isStatic;
+  els.aladinContainer.hidden = isStatic;
+  els.aladinLegend.innerHTML = "";
+  if (isStatic) {
+    state.aladinReady = null;
+    els.aladinContainer.innerHTML = "";
+    renderStatic(row);
+    return;
+  }
+  probeAllSurveys(); // only once the interactive viewer is actually used
   const keep = state.surveyChosen && HIPS_BY_KEY[els.surveySelect.value].covers(row);
   (keep ? Promise.resolve(els.surveySelect.value) : defaultSurvey(row)).then((key) => {
-    if (state.selectedId !== row.id) return;
+    if (state.selectedId !== row.id || currentViewMode(row) !== "aladin") return;
     els.surveySelect.value = key;
     renderAladin(row).then(() => addMemberOverlayFromCache(row));
   });
+}
+
+async function renderStatic(row) {
+  const size = 512;
+  const fovArcmin = clamp(Math.max(8, 4 * (row.theta500_arcmin || 0)), 4, 40);
+  const pixscale = (fovArcmin * 60) / size;
+  const layer = els.staticLayerSelect.value;
+  const src = `https://www.legacysurvey.org/viewer/jpeg-cutout?ra=${row.ra.toFixed(5)}&dec=${row.dec.toFixed(5)}&layer=${layer}&pixscale=${pixscale.toFixed(3)}&size=${size}`;
+  const outside = layer.startsWith("ls-") && !inLegacy(row);
+  els.staticView.innerHTML = `
+    <div class="static-frame">
+      <img src="${esc(src)}" alt="${esc(layer)} cutout of ${esc(row.name)}" onerror="this.parentElement.classList.add('mw-missing')">
+      <svg id="staticOverlay" class="static-overlay" viewBox="0 0 ${size} ${size}"></svg>
+    </div>
+    <p class="hint">${fovArcmin.toFixed(1)}′ × ${fovArcmin.toFixed(1)}′, north up, east left (legacysurvey.org).${outside ? " This position is probably outside the Legacy Surveys footprint; try Interactive (Aladin) or the panels." : ""}</p>`;
+  let members = [];
+  let val = () => undefined;
+  try {
+    const shard = await getShard(row);
+    members = shard.clusters?.[String(row.id)] || [];
+    const idx = Object.fromEntries((shard.fields || []).map((name, i) => [name, i]));
+    val = (m, name) => m[idx[name]];
+  } catch (error) {
+    /* overlay without member positions */
+  }
+  const svg = document.getElementById("staticOverlay");
+  if (!svg || state.selectedId !== row.id) return;
+  const cosd = Math.cos(row.dec * Math.PI / 180);
+  const toXY = (ra, dec) => {
+    let dra = ra - row.ra;
+    if (dra > 180) dra -= 360;
+    if (dra < -180) dra += 360;
+    return [size / 2 - (dra * cosd * 3600) / pixscale, size / 2 - ((dec - row.dec) * 3600) / pixscale];
+  };
+  const shapes = [];
+  if (Number.isFinite(row.theta500_arcmin)) {
+    shapes.push(`<circle class="ov-ring" cx="${size / 2}" cy="${size / 2}" r="${((row.theta500_arcmin * 60) / pixscale).toFixed(1)}"><title>θ500 = ${fix(row.theta500_arcmin, 1)}′</title></circle>`);
+  }
+  const seen = new Set();
+  for (const m of members) {
+    const info = state.catalogInfo[val(m, "catalog")] || {};
+    const style = FAMILY_STYLE[info.family] || FAMILY_STYLE.optical;
+    const [x, y] = toXY(val(m, "ra"), val(m, "dec"));
+    if (x < 0 || y < 0 || x > size || y > size) continue;
+    seen.add(info.family || "optical");
+    const title = `<title>${esc(catLabel(val(m, "catalog")))}: ${esc(val(m, "name") || "")}</title>`;
+    const r = 9;
+    const shape = style.shape === "square" ? `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${2 * r}" height="${2 * r}" />`
+      : style.shape === "rhomb" ? `<path d="M${x.toFixed(1)} ${(y - r - 2).toFixed(1)}l${r + 2} ${r + 2}l${-(r + 2)} ${r + 2}l${-(r + 2)} ${-(r + 2)}z" />`
+      : style.shape === "triangle" ? `<path d="M${x.toFixed(1)} ${(y - r - 1).toFixed(1)}l${r + 1} ${2 * r}h${-2 * (r + 1)}z" />`
+      : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" />`;
+    shapes.push(`<g class="ov-member" style="stroke:${style.color}">${shape}${title}</g>`);
+  }
+  shapes.push(`<path class="ov-centre" d="M${size / 2 - 10} ${size / 2}h20M${size / 2} ${size / 2 - 10}v20"><title>Adopted position</title></path>`);
+  svg.innerHTML = shapes.join("");
+  els.aladinLegend.innerHTML = [...["SZ", "X-ray", "optical", "IR"].filter((f) => seen.has(f)).map((f) => {
+    const st = FAMILY_STYLE[f];
+    return `<span class="legend-item"><span class="legend-shape legend-shape--${st.shape}" style="border-color:${st.color};color:${st.color}"></span>${esc(st.label)} positions</span>`;
+  }), `<span class="legend-item"><span class="legend-shape legend-shape--plus" style="color:${INK}"></span>Adopted</span>`,
+  ...(Number.isFinite(row.theta500_arcmin) ? [`<span class="legend-item"><span class="legend-ring"></span>θ500</span>`] : [])].join("");
 }
 
 function externalLinks(row) {
@@ -887,16 +1010,10 @@ async function renderAladin(row) {
     els.aladinContainer.innerHTML = `<div class="aladin-empty">${esc(survey.title)} is unreachable right now; pick another image.</div>`;
     return;
   }
-  if (!window.A || !window.A.init) {
-    els.aladinContainer.innerHTML = `<div class="aladin-empty">Loading Aladin Lite…</div>`;
-    setTimeout(() => {
-      if (state.selectedId === row.id) renderAladin(row).then(() => addMemberOverlayFromCache(row));
-    }, 500);
-    return;
-  }
-  els.aladinContainer.innerHTML = `<div id="aladin-lite-view" style="width:100%;height:440px;"></div>`;
+  els.aladinContainer.innerHTML = `<div id="aladin-lite-view" style="width:100%;height:440px;"><div class="aladin-empty">Loading Aladin Lite…</div></div>`;
   els.aladinLegend.innerHTML = "";
-  state.aladinReady = A.init.then(() => {
+  state.aladinReady = loadAladin().then(() => {
+    document.getElementById("aladin-lite-view").innerHTML = "";
     state.aladin = A.aladin("#aladin-lite-view", {
       target: `${row.ra} ${row.dec}`,
       fov: fovDeg,
@@ -912,13 +1029,18 @@ async function renderAladin(row) {
     return state.aladin;
   });
   const ready = state.aladinReady;
-  ready.then((aladin) => {
-    if (state.selectedId !== row.id || state.aladinReady !== ready) return;
+  ready.catch(() => {
+    if (state.aladinReady === ready && state.selectedId === row.id) {
+      els.aladinContainer.innerHTML = `<div class="aladin-empty">Aladin is not responding (the CDS servers are under heavy load). Use the Image view or the multiwavelength panels.</div>`;
+    }
+  });
+  ready.catch(() => null).then((aladin) => {
+    if (!aladin || state.selectedId !== row.id || state.aladinReady !== ready) return;
     const centre = A.catalog({ name: "Adopted position", sourceSize: 20, color: "#ffffff", shape: "plus" });
     aladin.addCatalog(centre);
     centre.addSources([A.source(row.ra, row.dec, { name: row.name })]);
     if (Number.isFinite(row.theta500_arcmin)) {
-      const overlay = A.graphicOverlay({ color: "#fff3d6", lineWidth: 1.5, name: "θ500" });
+      const overlay = A.graphicOverlay({ color: "#ffe9b0", lineWidth: 1.5, name: "θ500" });
       aladin.addOverlay(overlay);
       overlay.add(A.circle(row.ra, row.dec, row.theta500_arcmin / 60));
     }
@@ -927,7 +1049,7 @@ async function renderAladin(row) {
 
 function setAladinSurvey() {
   const row = state.byId.get(state.selectedId);
-  if (row) {
+  if (row && currentViewMode(row) === "aladin") {
     renderAladin(row).then(() => addMemberOverlayFromCache(row));
   }
 }
@@ -986,8 +1108,14 @@ function renderPanels(row) {
   els.panelsGrid.innerHTML = [...cutHtml, ...hipsHtml].join("");
 
   const id = row.id;
-  const whenAladin = () => (window.A && window.A.init ? A.init : new Promise((res) => setTimeout(res, 400)).then(whenAladin));
-  whenAladin().then(() => {
+  if (!hips.length) return;
+  loadAladin().catch(() => {
+    hips.forEach((h) => {
+      const box = document.getElementById(`mw-${h.key}`);
+      if (box && box.querySelector(".mw-note")) box.innerHTML = `<span class="mw-note">Aladin not responding (CDS under load)</span>`;
+    });
+    return Promise.reject(new Error("aladin unavailable"));
+  }).then(() => {
     hips.forEach(async (h) => {
       const url = await resolveHips(h);
       const box = document.getElementById(`mw-${h.key}`);
@@ -1009,18 +1137,19 @@ function renderPanels(row) {
       view.addCatalog(centre);
       centre.addSources([A.source(row.ra, row.dec, { name: row.name })]);
       if (Number.isFinite(row.theta500_arcmin)) {
-        const circle = A.graphicOverlay({ color: "#fff3d6", lineWidth: 1.5 });
+        const circle = A.graphicOverlay({ color: "#ffe9b0", lineWidth: 1.5 });
         view.addOverlay(circle);
         circle.add(A.circle(row.ra, row.dec, row.theta500_arcmin / 60));
       }
     });
-  });
+  }).catch(() => {});
 }
 
 function addMemberOverlay(row, members, val) {
   if (!state.aladinReady) return;
   const ready = state.aladinReady;
-  ready.then((aladin) => {
+  ready.catch(() => null).then((aladin) => {
+    if (!aladin) return;
     if (state.selectedId !== row.id || state.aladinReady !== ready) return;
     const byFam = {};
     for (const m of members) {

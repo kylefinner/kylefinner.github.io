@@ -11,23 +11,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@400;500;600&display=swap"
     rel="stylesheet"
   >
   <link rel="stylesheet" href="./styles.css">
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
-  <script type="module">
-    // Aladin Lite from npm (jsDelivr) so the viewer does not depend on the CDS web server.
-    import A from "https://cdn.jsdelivr.net/npm/aladin-lite@3.8.2/dist/aladin.js";
-    window.A = A;
-  </script>
   <script src="./app.js" defer></script>
 </head>
 <body>
   <div class="page-shell">
     <aside class="sidebar card" aria-label="Search and filters">
       <div class="sidebar-header">
-        <p class="eyebrow">Galaxy cluster master catalog</p>
+        <p class="eyebrow"><a href="../" class="home-link">Kyle Finner</a> · Galaxy cluster master catalog</p>
         <h1>Cluster Explorer</h1>
         <p id="statusText" class="lede">Loading cluster data...</p>
       </div>
@@ -52,6 +47,8 @@
           <p id="posFeedback" class="hint" aria-live="polite"></p>
         </section>
 
+        <details id="moreFilters" class="more-filters" open>
+        <summary>More filters</summary>
         <section class="control-group">
           <h2>Redshift</h2>
           <div class="two-up">
@@ -130,6 +127,7 @@
           </div>
           <div id="requiredCatalogs" class="catalog-list"></div>
         </section>
+        </details>
 
         <div class="stacked-actions sticky-actions">
           <button id="applyFiltersBtn" class="primary-button full-width" type="submit">Apply filters</button>
@@ -247,13 +245,26 @@
           <div id="externalLinks" class="link-row"></div>
 
           <div class="viewer-toolbar">
-            <label class="inline-label">
-              <span>Image</span>
+            <div class="seg" role="group" aria-label="Image viewer">
+              <button id="viewStaticBtn" class="seg-btn" type="button" aria-pressed="true">Image</button>
+              <button id="viewAladinBtn" class="seg-btn" type="button" aria-pressed="false">Interactive (Aladin)</button>
+            </div>
+            <label id="staticLayerLabel" class="inline-label">
+              <span>Layer</span>
+              <select id="staticLayerSelect">
+                <option value="ls-dr11">DESI Legacy DR11 (g r i z)</option>
+                <option value="ls-dr10">DESI Legacy DR10 (g r i z)</option>
+                <option value="vlass1.2">VLASS 1.2 (3 GHz)</option>
+              </select>
+            </label>
+            <label id="surveyLabel" class="inline-label" hidden>
+              <span>Survey</span>
               <select id="surveySelect"></select>
             </label>
             <button id="panelsBtn" class="ghost-button" type="button" aria-expanded="false" aria-controls="panelsWrap">Multiwavelength panels</button>
           </div>
-          <div id="aladinContainer" class="aladin-shell"></div>
+          <div id="staticView" class="static-view"></div>
+          <div id="aladinContainer" class="aladin-shell" hidden></div>
           <div id="aladinLegend" class="legend legend--small"></div>
 
           <section id="panelsWrap" class="mw-panels" hidden>
