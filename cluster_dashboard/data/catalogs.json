@@ -1,7 +1,7 @@
 {
- "generated": "2026-11-14T19:11:07Z",
+ "generated": "2026-11-14T22:41:18Z",
  "n_clusters": 226973,
- "n_members": 326043,
+ "n_members": 326494,
  "matching": {
   "r_max_arcsec": 600.0,
   "r_max_planck_arcsec": 360.0,
@@ -462,6 +462,45 @@
    "superseded_by": "",
    "caveats": "Morphology catalog of archival Chandra/XMM clusters: delta<0 relaxed, delta>0 disturbed.",
    "n_entries": 1844
+  },
+  {
+   "key": "radio_lotss",
+   "label": "LoTSS-DR2 diffuse radio (PSZ2)",
+   "family": "radio",
+   "survey": "radio-LoTSS",
+   "reference": "Botteon et al. 2022, A&A 660, A78; Jones et al. 2023, A&A 680, A31",
+   "url": "https://ui.adsabs.harvard.edu/abs/2022A%26A...660A..78B",
+   "m500_def": "",
+   "pos_err_arcsec": 90,
+   "superseded_by": "",
+   "caveats": "309 Planck clusters inside LoTSS-DR2 classified at 144 MHz: radio halo (RH), relic (RR), candidates (c), uncertain (U), or no diffuse emission (NDE). Relics confirmed by Jones+23 are included.",
+   "n_entries": 309
+  },
+  {
+   "key": "radio_mgcls",
+   "label": "MeerKAT MGCLS diffuse radio",
+   "family": "radio",
+   "survey": "radio-MeerKAT",
+   "reference": "Knowles et al. 2022, A&A 657, A56",
+   "url": "https://ui.adsabs.harvard.edu/abs/2022A%26A...657A..56K",
+   "m500_def": "",
+   "pos_err_arcsec": 60,
+   "superseded_by": "",
+   "caveats": "115 MGCLS clusters at 1.28 GHz: halos (H), relics (R), mini-halos (MH), phoenixes (Ph), candidates (c), uncertain (U); clusters observed without diffuse emission are marked as such.",
+   "n_entries": 116
+  },
+  {
+   "key": "radio_mc2",
+   "label": "MC2 radio-relic clusters",
+   "family": "radio",
+   "survey": "radio-MC2",
+   "reference": "Golovich et al. 2019, ApJS 240, 39 (MC2)",
+   "url": "https://ui.adsabs.harvard.edu/abs/2019ApJS..240...39G",
+   "m500_def": "",
+   "pos_err_arcsec": 120,
+   "superseded_by": "",
+   "caveats": "Merging Cluster Collaboration sample, selected by the presence of radio relics.",
+   "n_entries": 26
   },
   {
    "key": "gogreen",

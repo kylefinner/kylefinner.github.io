@@ -121,6 +121,21 @@
         </section>
 
         <section class="control-group">
+          <h2>Diffuse radio emission</h2>
+          <p class="hint">Hosts any of the checked (LoTSS-DR2, MeerKAT MGCLS, MC2):</p>
+          <div id="radioChecks" class="checkbox-grid">
+            <label class="checkbox-item"><input type="checkbox" value="halo"><span>Radio halo</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="relic"><span>Radio relic</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="minihalo"><span>Mini-halo</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="phoenix"><span>Phoenix</span></label>
+          </div>
+          <label class="checkbox-item">
+            <input id="radioCandInput" type="checkbox" checked>
+            <span>Include candidates</span>
+          </label>
+        </section>
+
+        <section class="control-group">
           <div class="group-heading">
             <h2>Required catalogs</h2>
             <span id="catalogCount" class="pill">0</span>
@@ -176,6 +191,7 @@
             <select id="colorBySelect">
               <option value="detection">Detection method</option>
               <option value="mass">Mass source</option>
+              <option value="radio">Diffuse radio emission</option>
             </select>
           </label>
           <div id="legend" class="legend" aria-label="Legend"></div>

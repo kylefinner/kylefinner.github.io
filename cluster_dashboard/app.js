@@ -24,8 +24,20 @@ const FAMILY_STYLE = {
   SZ: { color: SLOT.blue, shape: "circle", label: "SZ" },
   "X-ray": { color: SLOT.aqua, shape: "square", label: "X-ray" },
   optical: { color: SLOT.orange, shape: "rhomb", label: "Optical" },
-  IR: { color: SLOT.orange, shape: "triangle", label: "IR" }
+  IR: { color: SLOT.orange, shape: "triangle", label: "IR" },
+  radio: { color: "#6250d6", shape: "circle", label: "Diffuse radio" }
 };
+const RADIO_KINDS = [["halo", "Halo", "H"], ["relic", "Relic", "R"], ["minihalo", "Mini-halo", "MH"], ["phoenix", "Phoenix", "Ph"]];
+
+function radioClass(row) {
+  const h = row.radio_halo;
+  const r = row.radio_relic;
+  if (h && r) return "both";
+  if (h) return "halo";
+  if (r) return "relic";
+  if (row.radio_minihalo || row.radio_phoenix) return "other";
+  return "none";
+}
 
 const COLOR_MODES = {
   detection: {
@@ -45,6 +57,16 @@ const COLOR_MODES = {
       { key: "none", label: "No M500", color: CONTEXT }
     ],
     of: (row) => row._mgroup || "none"
+  },
+  radio: {
+    groups: [
+      { key: "both", label: "Halo + relic", color: SLOT.aqua },
+      { key: "halo", label: "Radio halo", color: SLOT.blue },
+      { key: "relic", label: "Radio relic", color: SLOT.orange },
+      { key: "other", label: "Mini-halo / phoenix", color: OTHER },
+      { key: "none", label: "None reported", color: CONTEXT }
+    ],
+    of: radioClass
   }
 };
 
@@ -193,7 +215,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "detailName", "detailAliases", "detailFlags", "detailCoords", "detailFacts", "massTable",
     "externalLinks", "surveySelect", "aladinLegend", "aladinContainer", "membersTable", "fieldsTable",
     "panelsBtn", "panelsWrap", "panelsGrid", "panelFovSelect",
-    "viewStaticBtn", "viewAladinBtn", "staticLayerLabel", "staticLayerSelect", "surveyLabel", "staticView"
+    "viewStaticBtn", "viewAladinBtn", "staticLayerLabel", "staticLayerSelect", "surveyLabel", "staticView",
+    "radioChecks", "radioCandInput"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
@@ -228,7 +251,16 @@ async function load() {
   setMassSource("best");
 
   const fromHash = findByName(decodeURIComponent(location.hash.replace(/^#/, "")));
-  if (new URLSearchParams(location.search).has("panels")) {
+  const params = new URLSearchParams(location.search);
+  if (params.get("color") && COLOR_MODES[params.get("color")]) {
+    state.colorBy = params.get("color");
+    els.colorBySelect.value = state.colorBy;
+  }
+  (params.get("radio") || "").split(",").filter(Boolean).forEach((k) => {
+    const box = els.radioChecks.querySelector(`input[value="${CSS.escape(k)}"]`);
+    if (box) box.checked = true;
+  });
+  if (params.has("panels")) {
     els.panelsWrap.hidden = false;
     els.panelsBtn.setAttribute("aria-expanded", "true");
     els.panelsBtn.textContent = "Hide panels";
@@ -414,6 +446,8 @@ function getFilters() {
     dyn: els.dynSelect.value,
     hideConflict: els.hideConflictInput.checked,
     hidePair: els.hidePairInput.checked,
+    radioKinds: Array.from(els.radioChecks.querySelectorAll("input:checked")).map((i) => i.value),
+    radioCand: els.radioCandInput.checked,
     catalogs
   };
 }
@@ -455,6 +489,10 @@ function passes(row, f) {
   if (f.dyn !== "any" && row.dyn_state !== f.dyn) return false;
   if (f.hideConflict && row.z_conflict) return false;
   if (f.hidePair && row.close_pair) return false;
+  if (f.radioKinds.length && !f.radioKinds.some((k) => {
+    const v = row[`radio_${k}`];
+    return v === "confirmed" || (f.radioCand && v === "candidate");
+  })) return false;
   for (const cat of f.catalogs) {
     if (!row._cats.has(cat)) return false;
   }
@@ -534,7 +572,8 @@ function renderStats() {
     tile("Clusters shown", rows.length),
     tile("Spectroscopic z", spec),
     tile(`With M500 (${MASS_SOURCES[state.massSource].label.toLowerCase()})`, mass),
-    tile("SZ-detected", sz)
+    tile("SZ-detected", sz),
+    tile("Radio halo / relic", rows.reduce((n, r) => n + (r.radio_halo || r.radio_relic ? 1 : 0), 0))
   ].join("");
 }
 
@@ -691,20 +730,21 @@ function renderMassZ() {
     const bg = sample(withMass(state.rows), 30000);
     traces.push({
       type: "scattergl", mode: "markers", x: bg.map((r) => r.z), y: bg.map((r) => r._m),
-      marker: { size: 4, color: CONTEXT, opacity: 0.5 }, hoverinfo: "skip", showlegend: false
+      marker: { size: 4, color: CONTEXT, opacity: 0.6 }, hoverinfo: "skip", showlegend: false
     });
   }
   const shown = withMass(state.filtered);
   for (const g of [...groupsFor(shown)].reverse()) {
     if (!g.rows.length) continue;
-    const dense = g.rows.length > 8000;
+    const dense = g.rows.length > 3000; // translucent so overlap shows density
     traces.push({
       type: "scattergl", mode: "markers", name: g.label,
       x: g.rows.map((r) => r.z), y: g.rows.map((r) => r._m),
       customdata: g.rows.map((r) => [r.id, catLabel(r._ms), r.z_type || "z type unknown", fmtErr(r._me)]),
       text: g.rows.map((r) => r.name),
       hovertemplate: "<b>M500 %{y:.2f}%{customdata[3]} ×10¹⁴ M☉</b> · z %{x:.3f}<br>%{text}<br>mass: %{customdata[1]} · z: %{customdata[2]}<extra></extra>",
-      marker: { size: dense ? 5 : 8, color: g.color, opacity: dense ? 0.75 : 0.9, line: { color: SURFACE, width: 1 } },
+      // dense groups: solid markers without the surface ring (a 1px ring on a 5px dot reads as white)
+      marker: { size: dense ? 4 : 8, color: g.color, opacity: dense ? 0.35 : 0.95, line: { color: SURFACE, width: dense ? 0 : 1 } },
       showlegend: false
     });
   }
@@ -761,6 +801,8 @@ const TABLE_COLUMNS = [
   { key: "_ms", label: "Mass from", cell: (r) => (r._ms ? `<span title="${esc(catLabel(r._ms))}">${esc(state.catalogInfo[r._ms]?.survey || r._ms)}</span>` : "–") },
   { key: "sz_snr", label: "SZ S/N", num: true, cell: (r) => fix(r.sz_snr, 1) },
   { key: "families", label: "Detected", cell: (r) => famBadges(r) },
+  { key: "radio_summary", label: "Radio", title: "Diffuse radio emission (H halo, R relic, MH mini-halo, Ph phoenix; ? = candidate)",
+    sortValue: (r) => ({ both: 4, halo: 3, relic: 2, other: 1 })[radioClass(r)] || 0, cell: (r) => radioBadges(r) },
   { key: "n_surveys", label: "Surveys", num: true, title: "Number of independent surveys", cell: (r) => esc(r.n_surveys ?? "–") },
   { key: "_flags", label: "Flags", sortValue: (r) => (r.z_conflict ? 2 : 0) + (r.close_pair ? 1 : 0), cell: (r) => flagCell(r) }
 ];
@@ -793,6 +835,29 @@ function famBadges(r, full = false) {
   const abbrev = full ? { SZ: "SZ", "X-ray": "X-ray", optical: "Optical", IR: "IR" } : { SZ: "SZ", "X-ray": "X", optical: "O", IR: "IR" };
   return ["SZ", "X-ray", "optical", "IR"].filter((f) => r._fams.has(f))
     .map((f) => `<span class="fam" title="${FAMILY_STYLE[f].label}"><span class="fam-dot" style="background:${FAMILY_STYLE[f].color}"></span>${abbrev[f]}</span>`).join("");
+}
+
+function radioBadges(r) {
+  return RADIO_KINDS.filter(([k]) => r[`radio_${k}`]).map(([k, label, abbr]) => {
+    const cand = r[`radio_${k}`] === "candidate";
+    return `<span class="rtag${cand ? " rtag--cand" : ""}" title="${label}${cand ? " (candidate)" : ""}">${abbr}${cand ? "?" : ""}</span>`;
+  }).join("") || (r.radio_none ? `<span class="muted" title="Observed; no diffuse emission detected">none</span>` : "");
+}
+
+function radioDetail(row) {
+  const lines = RADIO_KINDS.filter(([k]) => row[`radio_${k}_src`]).map(([k, label]) => {
+    const refs = String(row[`radio_${k}_src`]).split(",").map((item) => {
+      const [cat, status] = item.split(":");
+      const info = state.catalogInfo[cat] || {};
+      const link = info.url ? `<a href="${esc(info.url)}" target="_blank" rel="noopener" title="${esc(info.reference || "")}">${esc(info.label || cat)}</a>` : esc(cat);
+      return `${link}${status === "candidate" ? " (candidate)" : ""}`;
+    });
+    return `<div class="radio-line"><strong>${label}</strong> ${refs.join(", ")}</div>`;
+  });
+  if (!lines.length) {
+    return row.radio_none ? "None detected" : (row.radio_summary ? esc(row.radio_summary) : "–");
+  }
+  return lines.join("");
 }
 
 function flagCell(r) {
@@ -857,7 +922,8 @@ function renderDetails(row) {
     ["Richness", Number.isFinite(row.richness) ? fix(row.richness, 1) : "–", row.richness_src ? catLabel(row.richness_src) : ""],
     ["Dynamical state", row.dyn_state ? `${esc(row.dyn_state)}` : "–", Number.isFinite(row.dyn_delta) ? `δ = ${fix(row.dyn_delta, 2)} (Yuan & Han)` : ""],
     ["Catalogs", `${row.n_catalogs ?? "–"} entries`, `${row.n_surveys ?? "–"} independent surveys`],
-    ["Detected in", famBadges(row, true) || "–", ""]
+    ["Detected in", famBadges(row, true) || "–", ""],
+    ["Diffuse radio", radioDetail(row), row.radio_catalogs ? "each classification links to its paper; see also the table below" : "not covered by the radio compilations"]
   ];
   els.detailFacts.innerHTML = facts.map(([label, value, sub, title]) => `
     <div class="summary-card"${title ? ` title="${esc(title)}"` : ""}>
@@ -965,6 +1031,7 @@ async function renderStatic(row) {
   const seen = new Set();
   for (const m of members) {
     const info = state.catalogInfo[val(m, "catalog")] || {};
+    if (info.family === "radio") continue; // classification entries sit at the cluster centre
     const style = FAMILY_STYLE[info.family] || FAMILY_STYLE.optical;
     const [x, y] = toXY(val(m, "ra"), val(m, "dec"));
     if (x < 0 || y < 0 || x > size || y > size) continue;
@@ -1154,6 +1221,7 @@ function addMemberOverlay(row, members, val) {
     const byFam = {};
     for (const m of members) {
       const fam = state.catalogInfo[val(m, "catalog")]?.family || "optical";
+      if (fam === "radio") continue; // classification entries sit at the cluster centre
       (byFam[fam] = byFam[fam] || []).push(m);
     }
     const legend = [];
@@ -1234,7 +1302,7 @@ async function renderMembers(row) {
 /* ------------------------------------------------------------------ sidebar content */
 
 function renderCatalogChecklist(keys) {
-  const fams = ["SZ", "X-ray", "optical", "IR"];
+  const fams = ["SZ", "X-ray", "radio", "optical", "IR"];
   const byFam = {};
   keys.forEach((k) => {
     const fam = state.catalogInfo[k]?.family || "optical";
@@ -1256,7 +1324,7 @@ function renderAbout() {
   const when = meta.generated ? new Date(meta.generated).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "";
   els.buildInfo.textContent = `${fmtInt(meta.n_members || 0)} entries from ${(meta.catalogs || []).length} catalogs, grouped into ${fmtInt(meta.n_clusters || state.rows.length)} clusters${when ? ` (built ${when})` : ""}.`;
   if (meta.pipeline_url) els.pipelineLink.href = meta.pipeline_url;
-  const order = ["SZ", "X-ray", "optical", "IR"];
+  const order = ["SZ", "X-ray", "radio", "optical", "IR"];
   els.catalogRefs.innerHTML = [...(meta.catalogs || [])]
     .sort((a, b) => order.indexOf(a.family) - order.indexOf(b.family))
     .map((c) => `

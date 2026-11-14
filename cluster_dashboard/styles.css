@@ -1153,3 +1153,33 @@ a.mw-title {
   min-width: 0;
   max-width: 100%;
 }
+
+/* diffuse radio badges */
+.rtag {
+  display: inline-block;
+  margin-right: 3px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: #ffffff;
+  background: #6250d6;
+}
+
+.rtag--cand {
+  color: #6250d6;
+  background: transparent;
+  border: 1px solid #6250d6;
+  line-height: 1.35;
+}
+
+.radio-line {
+  font-size: 0.82rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.radio-line strong {
+  font-weight: 600;
+  margin-right: 4px;
+}
