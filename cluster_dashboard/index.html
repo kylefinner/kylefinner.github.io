@@ -121,6 +121,25 @@
         </section>
 
         <section class="control-group">
+          <h2>Detected by survey</h2>
+          <p class="hint">Require or exclude detections by each survey (all versions of a survey's catalogs count).</p>
+          <div id="surveyFilters" class="survey-filters"></div>
+        </section>
+
+        <section class="control-group">
+          <h2>Inside footprint of</h2>
+          <div id="footprintChecks" class="checkbox-grid">
+            <label class="checkbox-item"><input type="checkbox" value="euclid_wide"><span>Euclid Wide</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="euclid_dr1"><span>Euclid DR1 (approx.)</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="euclid_q1"><span>Euclid Q1 fields</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="legacy"><span>DESI Legacy (approx.)</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="ps1"><span>Pan-STARRS</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="erosita"><span>eROSITA-DE DR1</span></label>
+          </div>
+          <p class="hint">Euclid Wide and DR1 come from the time-tagged reference-survey footprint (DR1 is approximate; the tile list is authoritative). Pan-STARRS: Dec &gt; −30°; eROSITA-DE: Galactic l &gt; 180°; Legacy: |b| &gt; 20°, Dec &gt; −65°.</p>
+        </section>
+
+        <section class="control-group">
           <h2>Diffuse radio emission</h2>
           <p class="hint">Hosts any of the checked (LoTSS-DR2, MeerKAT MGCLS, MC2):</p>
           <div id="radioChecks" class="checkbox-grid">

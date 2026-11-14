@@ -1183,3 +1183,40 @@ a.mw-title {
   font-weight: 600;
   margin-right: 4px;
 }
+
+/* survey filter rows */
+.survey-filters {
+  display: grid;
+  gap: 4px;
+  max-height: 300px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.survey-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.survey-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.survey-name .fam-dot {
+  margin-right: 0;
+}
+
+.survey-row select {
+  width: auto;
+  padding: 4px 6px;
+  font-size: 0.74rem;
+}

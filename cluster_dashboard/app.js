@@ -161,6 +161,16 @@ function resolveHips(survey) {
 }
 
 let surveysProbed = false;
+const FOOTPRINTS = {
+  euclid_wide: { label: "Euclid Wide", test: (r) => !!r.euclid_wide },
+  euclid_dr1: { label: "Euclid DR1 (approx.)", test: (r) => !!r.euclid_dr1 },
+  euclid_q1: { label: "Euclid Q1", test: (r) => HIPS_BY_KEY.euclid_q1.covers(r) },
+  legacy: { label: "DESI Legacy", test: inLegacy },
+  ps1: { label: "Pan-STARRS", test: (r) => r.dec > -30 },
+  erosita: { label: "eROSITA-DE DR1", test: (r) => r.l >= 180 }
+};
+const RADIO_GROUPS = new Set(["LoTSS-DR2 (radio)", "MeerKAT MGCLS (radio)", "MC2 (radio relics)"]);
+
 function probeAllSurveys() {
   if (surveysProbed) return;
   surveysProbed = true;
@@ -216,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "externalLinks", "surveySelect", "aladinLegend", "aladinContainer", "membersTable", "fieldsTable",
     "panelsBtn", "panelsWrap", "panelsGrid", "panelFovSelect",
     "viewStaticBtn", "viewAladinBtn", "staticLayerLabel", "staticLayerSelect", "surveyLabel", "staticView",
-    "radioChecks", "radioCandInput"
+    "radioChecks", "radioCandInput", "surveyFilters", "footprintChecks"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
@@ -247,6 +257,7 @@ async function load() {
   state.columns = payload.columns || Object.keys(state.rows[0] || {});
 
   renderCatalogChecklist(payload.catalogs || []);
+  renderSurveyFilters();
   renderAbout();
   setMassSource("best");
 
@@ -256,6 +267,16 @@ async function load() {
     state.colorBy = params.get("color");
     els.colorBySelect.value = state.colorBy;
   }
+  (params.get("in") || "").split(",").filter(Boolean).forEach((k) => {
+    const box = els.footprintChecks.querySelector(`input[value="${CSS.escape(k)}"]`);
+    if (box) box.checked = true;
+  });
+  (params.get("survey") || "").split(",").filter(Boolean).forEach((item) => {
+    const exclude = item.startsWith("-");
+    const name = exclude ? item.slice(1) : item;
+    const sel = [...els.surveyFilters.querySelectorAll("select")].find((x) => x.dataset.group.toLowerCase() === name.toLowerCase());
+    if (sel) sel.value = exclude ? "no" : "yes";
+  });
   (params.get("radio") || "").split(",").filter(Boolean).forEach((k) => {
     const box = els.radioChecks.querySelector(`input[value="${CSS.escape(k)}"]`);
     if (box) box.checked = true;
@@ -292,6 +313,7 @@ function prepareRow(row) {
   row._cosDec = Math.cos(row.dec * Math.PI / 180);
   row._cats = new Set(String(row.catalogs || "").split(",").filter(Boolean));
   row._fams = new Set(String(row.families || "").split("+").filter(Boolean));
+  row._groups = new Set(String(row.survey_groups || "").split(",").filter(Boolean));
   const names = [row.name, ...(row.alt_names || [])].filter(Boolean);
   row._search = names.join(" | ").toLowerCase();
   row._compact = compactName(row._search);
@@ -448,6 +470,9 @@ function getFilters() {
     hidePair: els.hidePairInput.checked,
     radioKinds: Array.from(els.radioChecks.querySelectorAll("input:checked")).map((i) => i.value),
     radioCand: els.radioCandInput.checked,
+    surveys: Array.from(els.surveyFilters.querySelectorAll("select")).filter((sel) => sel.value !== "any")
+      .map((sel) => [sel.dataset.group, sel.value]),
+    footprints: Array.from(els.footprintChecks.querySelectorAll("input:checked")).map((i) => i.value),
     catalogs
   };
 }
@@ -493,10 +518,38 @@ function passes(row, f) {
     const v = row[`radio_${k}`];
     return v === "confirmed" || (f.radioCand && v === "candidate");
   })) return false;
+  for (const [group, mode] of f.surveys) {
+    if ((mode === "yes") !== row._groups.has(group)) return false;
+  }
+  for (const key of f.footprints) {
+    if (!FOOTPRINTS[key].test(row)) return false;
+  }
   for (const cat of f.catalogs) {
     if (!row._cats.has(cat)) return false;
   }
   return true;
+}
+
+function renderSurveyFilters() {
+  const counts = new Map();
+  for (const row of state.rows) {
+    for (const g of row._groups) counts.set(g, (counts.get(g) || 0) + 1);
+  }
+  const order = { SZ: 0, "X-ray": 1, optical: 2, IR: 3, radio: 4 };
+  const famOf = {};
+  (state.meta.catalogs || []).forEach((c) => { if (c.group && !(c.group in famOf)) famOf[c.group] = c.family; });
+  const groups = [...counts.keys()].filter((g) => !RADIO_GROUPS.has(g))
+    .sort((a, b) => (order[famOf[a]] ?? 9) - (order[famOf[b]] ?? 9) || counts.get(b) - counts.get(a));
+  els.surveyFilters.innerHTML = groups.map((g) => `
+    <label class="survey-row">
+      <span class="survey-name"><span class="fam-dot" style="background:${(FAMILY_STYLE[famOf[g]] || FAMILY_STYLE.optical).color}"></span>${esc(g)}
+        <span class="legend-count">${fmtInt(counts.get(g))}</span></span>
+      <select data-group="${esc(g)}" aria-label="${esc(g)}">
+        <option value="any">Any</option>
+        <option value="yes">Detected</option>
+        <option value="no">Not detected</option>
+      </select>
+    </label>`).join("");
 }
 
 function matchesName(row, query) {
@@ -922,7 +975,9 @@ function renderDetails(row) {
     ["Richness", Number.isFinite(row.richness) ? fix(row.richness, 1) : "–", row.richness_src ? catLabel(row.richness_src) : ""],
     ["Dynamical state", row.dyn_state ? `${esc(row.dyn_state)}` : "–", Number.isFinite(row.dyn_delta) ? `δ = ${fix(row.dyn_delta, 2)} (Yuan & Han)` : ""],
     ["Catalogs", `${row.n_catalogs ?? "–"} entries`, `${row.n_surveys ?? "–"} independent surveys`],
-    ["Detected in", famBadges(row, true) || "–", ""],
+    ["Detected in", famBadges(row, true) || "–", [...row._groups].filter((g) => !RADIO_GROUPS.has(g)).join(", ")],
+    ["Inside footprint of", Object.values(FOOTPRINTS).filter((fp) => fp.test(row)).map((fp) => esc(fp.label)).join(" · ") || "–",
+      "Euclid flags from the reference-survey footprint; others approximate"],
     ["Diffuse radio", radioDetail(row), row.radio_catalogs ? "each classification links to its paper; see also the table below" : "not covered by the radio compilations"]
   ];
   els.detailFacts.innerHTML = facts.map(([label, value, sub, title]) => `
