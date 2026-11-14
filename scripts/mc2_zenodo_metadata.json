@@ -1,0 +1,33 @@
+{
+  "_comment": "Zenodo metadata for the MC2 colour images. Review before running `mc2_zenodo.py upload`; it can still be edited on zenodo.org until you publish. Empty creator fields are dropped.",
+  "upload_type": "dataset",
+  "title": "Merging Cluster Collaboration (MC2): optical colour images and WCS headers of merging galaxy clusters",
+  "creators": [
+    {
+      "name": "Finner, Kyle",
+      "affiliation": "IPAC, California Institute of Technology",
+      "orcid": ""
+    }
+  ],
+  "description": "<p>Optical colour images of merging galaxy clusters from the Merging Cluster Collaboration (MC2) weak-lensing program, with a WCS header for each image.</p><p>Each cluster has two files:</p><ul><li><code>&lt;cluster&gt;_color.jpg</code>: colour image</li><li><code>&lt;cluster&gt;.head</code>: FITS header text giving the WCS (RA---TAN / DEC--TAN, ICRS) for the JPG's pixel grid</li></ul><p>The images can be browsed at <a href=\"https://kylefinner.github.io/mc2_viewer.html\">kylefinner.github.io/mc2_viewer.html</a>.</p>",
+  "access_right": "open",
+  "license": "cc-by-4.0",
+  "keywords": [
+    "galaxy clusters",
+    "merging clusters",
+    "weak lensing",
+    "Merging Cluster Collaboration",
+    "MC2"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://ui.adsabs.harvard.edu/abs/2025ApJS..277...28F/abstract",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-article"
+    },
+    {
+      "identifier": "https://kylefinner.github.io/mc2_viewer.html",
+      "relation": "isDocumentedBy"
+    }
+  ]
+}

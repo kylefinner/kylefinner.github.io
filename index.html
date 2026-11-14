@@ -221,7 +221,7 @@
      any IDs not present.                                         */
   const clusterDetails = {
 
-    toothbrush: {
+    '1rxsj0603': {
       title: 'Toothbrush Cluster',
       image: 'images/1rxsj0603_4pane_SN_auto.jpg',
       alt:   '1rxsj0603',
@@ -603,19 +603,45 @@
 
   }
 
+  /* Per-cluster download links, written by scripts/mc2_zenodo.py into
+     assets/data/mc2_downloads.json. They point either at Merging_Clusters/
+     on this site or at the MC2 Zenodo record. */
+  const downloadsReady = fetch('assets/data/mc2_downloads.json')
+    .then(r => (r.ok ? r.json() : null))
+    .catch(() => null);
+
+  const DOWNLOAD_LABELS = {
+    color_jpg: 'Download the colour image jpg.',
+    wcs_head:  'Download the wcs .head file.',
+    mass_map:  'Download the mass map.'
+  };
+
+  async function renderDownloads(id, col) {
+    const manifest = await downloadsReady;
+    if (!col.isConnected) return;            // another cluster was opened meanwhile
+    const files = manifest && manifest.clusters && manifest.clusters[id];
+    if (!files) { col.remove(); return; }   // no downloadable data for this cluster
+
+    const links = Object.keys(DOWNLOAD_LABELS)
+      .filter(kind => files[kind])
+      .map(kind => `<a target="_blank" rel="noopener" href="${files[kind]}">${DOWNLOAD_LABELS[kind]}</a>`)
+      .join('');
+    const archive = manifest.doi
+      ? `<p style="margin-top:0.8em;">Archived on Zenodo:
+           <a target="_blank" rel="noopener" href="https://doi.org/${manifest.doi}">doi:${manifest.doi}</a></p>`
+      : '';
+    col.innerHTML = `
+      <h4>Cluster WL Data</h4>
+      <div class="cluster-links">${links}</div>
+      ${archive}
+    `;
+  }
+
   function showCluster(id) {
     const c = clusterDetails[id];
     if (!c) return;
 
-    // 1) build your three-column HTML exactly as before…
-    const dataLinksHTML = `
-      <h4>Cluster WL Data</h4>
-      <div class="cluster-links">
-        <a target="_blank" href="Merging_Clusters/${id}_color.jpg">Download the colour image jpg.</a>
-        <a target="_blank" href="Merging_Clusters/${id}.head">Download the wcs .head file.</a>
-        <a target="_blank" href="Merging_Clusters/${id}_WL_SN.fits">Download the mass map.</a>
-      </div>
-    `;
+    // 1) build your three-column HTML (the data column is filled in by renderDownloads)
     const refButtons = c.references
       .map(r => `<a class="button alt" target="_blank" href="${r.url}">${r.text}</a>`)
       .join(' ');
@@ -630,14 +656,14 @@
           <p>${c.paragraph}</p>
           <footer style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;">${refButtons}</footer>
         </div>
-        <div class="cluster-col" style="text-align:left;">
-          ${dataLinksHTML}
-        </div>
+        <div class="cluster-col cluster-downloads" style="text-align:left;"></div>
       </div>
     `;
 
     // 2) inject it
-    document.getElementById('clusterPanel').innerHTML = panelHTML;
+    const panel = document.getElementById('clusterPanel');
+    panel.innerHTML = panelHTML;
+    renderDownloads(id, panel.querySelector('.cluster-downloads'));
 
     // 3) now scroll the WHOLE #clusterDisplay section so its BOTTOM
     //    sits at the bottom of the viewport

@@ -1,0 +1,105 @@
+{
+  "source": "local",
+  "clusters": {
+    "1rxsj0603": {
+      "color_jpg": "Merging_Clusters/1rxsj0603_color.jpg",
+      "wcs_head": "Merging_Clusters/1rxsj0603.head"
+    },
+    "abell115": {
+      "color_jpg": "Merging_Clusters/abell115_color.jpg",
+      "wcs_head": "Merging_Clusters/abell115.head"
+    },
+    "abell1240": {
+      "color_jpg": "Merging_Clusters/abell1240_color.jpg",
+      "wcs_head": "Merging_Clusters/abell1240.head"
+    },
+    "abell1300": {
+      "color_jpg": "Merging_Clusters/abell1300_color.jpg",
+      "wcs_head": "Merging_Clusters/abell1300.head"
+    },
+    "abell1612": {
+      "color_jpg": "Merging_Clusters/abell1612_color.jpg",
+      "wcs_head": "Merging_Clusters/abell1612.head"
+    },
+    "abell2034": {
+      "color_jpg": "Merging_Clusters/abell2034_color.jpg",
+      "wcs_head": "Merging_Clusters/abell2034.head"
+    },
+    "abell2061": {
+      "color_jpg": "Merging_Clusters/abell2061_color.jpg",
+      "wcs_head": "Merging_Clusters/abell2061.head"
+    },
+    "abell2163": {
+      "color_jpg": "Merging_Clusters/abell2163_color.jpg",
+      "wcs_head": "Merging_Clusters/abell2163.head"
+    },
+    "abell2255": {
+      "color_jpg": "Merging_Clusters/abell2255_color.jpg",
+      "wcs_head": "Merging_Clusters/abell2255.head"
+    },
+    "abell2345": {
+      "color_jpg": "Merging_Clusters/abell2345_color.jpg",
+      "wcs_head": "Merging_Clusters/abell2345.head"
+    },
+    "abell2744": {
+      "color_jpg": "Merging_Clusters/abell2744_color.jpg",
+      "wcs_head": "Merging_Clusters/abell2744.head"
+    },
+    "abell3411": {
+      "color_jpg": "Merging_Clusters/abell3411_color.jpg",
+      "wcs_head": "Merging_Clusters/abell3411.head"
+    },
+    "abell521": {
+      "color_jpg": "Merging_Clusters/abell521_color.jpg",
+      "wcs_head": "Merging_Clusters/abell521.head"
+    },
+    "abell523": {
+      "color_jpg": "Merging_Clusters/abell523_color.jpg",
+      "wcs_head": "Merging_Clusters/abell523.head"
+    },
+    "abell746": {
+      "color_jpg": "Merging_Clusters/abell746_color.jpg",
+      "wcs_head": "Merging_Clusters/abell746.head"
+    },
+    "abell781": {
+      "color_jpg": "Merging_Clusters/abell781_color.jpg",
+      "wcs_head": "Merging_Clusters/abell781.head"
+    },
+    "cizaj2242": {
+      "color_jpg": "Merging_Clusters/cizaj2242_color.jpg",
+      "wcs_head": "Merging_Clusters/cizaj2242.head"
+    },
+    "macsj1149": {
+      "color_jpg": "Merging_Clusters/macsj1149_color.jpg",
+      "wcs_head": "Merging_Clusters/macsj1149.head"
+    },
+    "macsj1752": {
+      "color_jpg": "Merging_Clusters/macsj1752_color.jpg",
+      "wcs_head": "Merging_Clusters/macsj1752.head"
+    },
+    "plckg287": {
+      "color_jpg": "Merging_Clusters/plckg287_color.jpg",
+      "wcs_head": "Merging_Clusters/plckg287.head"
+    },
+    "rxcj1314": {
+      "color_jpg": "Merging_Clusters/rxcj1314_color.jpg",
+      "wcs_head": "Merging_Clusters/rxcj1314.head"
+    },
+    "zwcl0008": {
+      "color_jpg": "Merging_Clusters/zwcl0008_color.jpg",
+      "wcs_head": "Merging_Clusters/zwcl0008.head"
+    },
+    "zwcl1447": {
+      "color_jpg": "Merging_Clusters/zwcl1447_color.jpg",
+      "wcs_head": "Merging_Clusters/zwcl1447.head"
+    },
+    "zwcl1856": {
+      "color_jpg": "Merging_Clusters/zwcl1856_color.jpg",
+      "wcs_head": "Merging_Clusters/zwcl1856.head"
+    },
+    "zwcl2341": {
+      "color_jpg": "Merging_Clusters/zwcl2341_color.jpg",
+      "wcs_head": "Merging_Clusters/zwcl2341.head"
+    }
+  }
+}

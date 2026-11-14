@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cluster Dashboard</title>
+  <title>Cluster Explorer</title>
   <meta
     name="description"
-    content="A static galaxy cluster dashboard with catalog search, filtering, plots, and sky viewer."
+    content="A master catalog of galaxy clusters from SZ, X-ray, optical and infrared surveys, with every survey's measurements, plots and a sky viewer."
   >
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,228 +16,281 @@
   >
   <link rel="stylesheet" href="./styles.css">
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
-  <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js" defer></script>
+  <script type="module">
+    // Aladin Lite from npm (jsDelivr) so the viewer does not depend on the CDS web server.
+    import A from "https://cdn.jsdelivr.net/npm/aladin-lite@3.8.2/dist/aladin.js";
+    window.A = A;
+  </script>
   <script src="./app.js" defer></script>
 </head>
 <body>
   <div class="page-shell">
-    <aside class="sidebar card">
+    <aside class="sidebar card" aria-label="Search and filters">
       <div class="sidebar-header">
+        <p class="eyebrow">Galaxy cluster master catalog</p>
         <h1>Cluster Explorer</h1>
         <p id="statusText" class="lede">Loading cluster data...</p>
       </div>
 
-      <section class="control-group">
-        <label for="searchInput">Search Name</label>
-        <input id="searchInput" type="text" placeholder="ACO 2744, MACS1149, PSZ2...">
-      </section>
+      <form id="filterForm" autocomplete="off">
+        <section class="control-group">
+          <h2>Search</h2>
+          <label>
+            <span>Name (any alias)</span>
+            <input id="searchInput" type="search" placeholder="Abell 2744, XLSSC 122, SPT-CL J2106-5844">
+          </label>
+          <div class="two-up two-up--wide-first">
+            <label>
+              <span>Position (RA Dec)</span>
+              <input id="posInput" type="text" placeholder="02:17:44.2 -03:45:31 or 34.43 -3.76">
+            </label>
+            <label>
+              <span>Radius (′)</span>
+              <input id="radiusInput" type="number" step="0.5" min="0" value="10">
+            </label>
+          </div>
+          <p id="posFeedback" class="hint" aria-live="polite"></p>
+        </section>
 
-      <section class="control-group">
-        <div class="group-heading">
-          <h2>Spatial Search</h2>
-          <button id="clearSpatialBtn" class="ghost-button" type="button">Clear</button>
-        </div>
-        <div class="two-up">
+        <section class="control-group">
+          <h2>Redshift</h2>
+          <div class="two-up">
+            <label><span>z min</span><input id="zMinInput" type="number" step="0.01" min="0"></label>
+            <label><span>z max</span><input id="zMaxInput" type="number" step="0.01" min="0"></label>
+          </div>
           <label>
-            <span>RA (deg)</span>
-            <input id="raInput" type="number" step="0.0001" placeholder="RA">
-          </label>
-          <label>
-            <span>Dec (deg)</span>
-            <input id="decInput" type="number" step="0.0001" placeholder="Dec">
-          </label>
-        </div>
-        <label>
-          <span>Radius (arcmin)</span>
-          <input id="radiusInput" type="number" step="0.1" min="0" value="10">
-        </label>
-      </section>
-
-      <section class="control-group">
-        <div class="group-heading">
-          <h2>Scientific Filters</h2>
-        </div>
-        <div class="two-up">
-          <label>
-            <span>Min z</span>
-            <input id="zMinInput" type="number" step="0.001">
-          </label>
-          <label>
-            <span>Max z</span>
-            <input id="zMaxInput" type="number" step="0.001">
-          </label>
-        </div>
-        <button id="resetZBtn" class="ghost-button full-width" type="button">Reset z</button>
-
-        <div class="two-up">
-          <label>
-            <span>Min M (1e14 Msun)</span>
-            <input id="massMinInput" type="number" step="0.01">
-          </label>
-          <label>
-            <span>Max M (1e14 Msun)</span>
-            <input id="massMaxInput" type="number" step="0.01">
-          </label>
-        </div>
-        <button id="resetMassBtn" class="ghost-button full-width" type="button">Reset M</button>
-
-        <div class="two-up">
-          <label>
-            <span>N catalogs min</span>
-            <input id="nMinInput" type="number" step="1" min="0" value="0">
-          </label>
-          <label>
-            <span>N catalogs max</span>
-            <input id="nMaxInput" type="number" step="1" min="0" value="50">
-          </label>
-        </div>
-
-        <div class="checkbox-grid">
-          <label class="checkbox-item">
-            <input id="keepNaNsInput" type="checkbox" checked>
-            <span>Keep NaNs</span>
-          </label>
-          <label class="checkbox-item">
-            <input id="mustZInput" type="checkbox">
-            <span>Must z</span>
-          </label>
-          <label class="checkbox-item">
-            <input id="mustMInput" type="checkbox">
-            <span>Must M</span>
-          </label>
-        </div>
-      </section>
-
-      <section class="control-group">
-        <div class="group-heading">
-          <h2>Required Catalogs</h2>
-          <span id="catalogCount" class="pill">0</span>
-        </div>
-        <div id="requiredCatalogs" class="catalog-list"></div>
-        <div class="stacked-actions">
-          <button id="applyFiltersBtn" class="primary-button full-width" type="button">Apply Filters</button>
-          <button id="resetFiltersBtn" class="ghost-button full-width" type="button">Reset All</button>
-        </div>
-        <p class="hint">Search and filters update only when you click Apply Filters.</p>
-      </section>
-
-      <section class="control-group">
-        <div class="group-heading">
-          <h2>View</h2>
-        </div>
-        <div class="two-up">
-          <label>
-            <span>Sort By</span>
-            <select id="sortBySelect">
-              <option value="name_best">name_best</option>
-              <option value="z_best">z_best</option>
-              <option value="mass_best">mass_best</option>
-              <option value="n_catalogs">n_catalogs</option>
-              <option value="ra_deg">ra_deg</option>
+            <span>Require</span>
+            <select id="zRequireSelect">
+              <option value="any">No requirement</option>
+              <option value="has">A redshift</option>
+              <option value="spec">A spectroscopic redshift</option>
             </select>
           </label>
+        </section>
+
+        <section class="control-group">
+          <h2>Mass M<sub>500c</sub></h2>
           <label>
-            <span>Order</span>
-            <select id="sortOrderSelect">
-              <option value="Ascending">Ascending</option>
-              <option value="Descending">Descending</option>
+            <span>Mass from</span>
+            <select id="massSourceSelect">
+              <option value="best">Adopted (best available)</option>
+              <option value="spt">SPT surveys</option>
+              <option value="act">ACT</option>
+              <option value="xray">X-ray (eRASS1 / MCXC)</option>
+              <option value="planck">Planck PSZ2</option>
             </select>
           </label>
-        </div>
-        <div class="two-up">
-          <label>
-            <span>Table Columns</span>
-            <select id="tableColumnsSelect">
-              <option value="core">Core fields</option>
-              <option value="all">All fields</option>
-            </select>
+          <div class="two-up">
+            <label><span>Min (10<sup>14</sup> M<sub>☉</sub>)</span><input id="massMinInput" type="number" step="0.1" min="0"></label>
+            <label><span>Max (10<sup>14</sup> M<sub>☉</sub>)</span><input id="massMaxInput" type="number" step="0.1" min="0"></label>
+          </div>
+          <label class="checkbox-item">
+            <input id="mustMassInput" type="checkbox">
+            <span>Require a mass from this source</span>
           </label>
-          <label>
-            <span>Display Limit</span>
-            <input id="displayLimitInput" type="number" min="50" max="20000" step="50" value="2000">
+        </section>
+
+        <section class="control-group">
+          <h2>Detection &amp; quality</h2>
+          <p class="hint">Detected in all checked:</p>
+          <div id="familyChecks" class="checkbox-grid checkbox-grid--4">
+            <label class="checkbox-item"><input type="checkbox" value="SZ"><span>SZ</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="X-ray"><span>X-ray</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="optical"><span>Optical</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="IR"><span>IR</span></label>
+          </div>
+          <div class="two-up">
+            <label>
+              <span>Min. independent surveys</span>
+              <input id="nSurveysInput" type="number" min="1" step="1" value="1">
+            </label>
+            <label>
+              <span>Dynamical state</span>
+              <select id="dynSelect">
+                <option value="any">Any</option>
+                <option value="relaxed">Relaxed</option>
+                <option value="disturbed">Disturbed</option>
+              </select>
+            </label>
+          </div>
+          <label class="checkbox-item">
+            <input id="hideConflictInput" type="checkbox">
+            <span>Hide clusters whose catalogs disagree on z</span>
           </label>
+          <label class="checkbox-item">
+            <input id="hidePairInput" type="checkbox">
+            <span>Hide close pairs (&lt;2′ apart, same z)</span>
+          </label>
+        </section>
+
+        <section class="control-group">
+          <div class="group-heading">
+            <h2>Required catalogs</h2>
+            <span id="catalogCount" class="pill">0</span>
+          </div>
+          <div id="requiredCatalogs" class="catalog-list"></div>
+        </section>
+
+        <div class="stacked-actions sticky-actions">
+          <button id="applyFiltersBtn" class="primary-button full-width" type="submit">Apply filters</button>
+          <button id="resetFiltersBtn" class="ghost-button full-width" type="button">Reset all</button>
         </div>
-        <div class="stacked-actions">
-          <button id="applyViewBtn" class="ghost-button full-width" type="button">Update View</button>
-          <button id="downloadCsvBtn" class="primary-button full-width" type="button">Download Filtered CSV</button>
-        </div>
-      </section>
+      </form>
 
       <section class="control-group">
-        <div class="group-heading">
-          <h2>Build Data</h2>
-        </div>
-        <p class="hint">
-          Generate <code>site/data/clusters.json.gz</code> with
-          <code>python export_web_data.py</code> before publishing.
-        </p>
+        <h2>About this catalog</h2>
+        <p id="buildInfo" class="hint"></p>
+        <details class="about">
+          <summary>How catalogs are combined</summary>
+          <ul class="about-list">
+            <li><strong>Nothing is discarded.</strong> Every entry of every input catalog is kept with its published values; the table under each cluster lists them all.</li>
+            <li><strong>Matching.</strong> Entries are grouped when their separation is below 3σ of the combined position errors, or ≤0.5 Mpc (≤0.75 Mpc if an optical/IR centre is involved), within 1′–10′.</li>
+            <li><strong>SZ &amp; X-ray</strong> detections at the same position trace the same gas and are always grouped; if their redshifts disagree the cluster is flagged <em>z conflict</em>.</li>
+            <li><strong>Optical/IR</strong> systems must also agree in redshift (|Δz| ≤ 0.1(1+z), 0.03 if both spectroscopic), so projections stay separate. At most one entry per catalog per cluster.</li>
+            <li><strong>Adopted values</strong>: z prefers spectroscopic, then curated SZ follow-up; M500 prefers SPT, then ACT, X-ray, Planck. Each adopted value names its source.</li>
+          </ul>
+        </details>
+        <details class="about">
+          <summary>Mass caveats</summary>
+          <ul class="about-list">
+            <li>M500c values are shown exactly as published; they are <strong>not</strong> rescaled to a common calibration.</li>
+            <li>Typical offsets in this catalog: ACT DR6 ≈ 5% below SPT (≈10% at z &gt; 1); Planck PSZ2 and MCXC (hydrostatic scale) ≈ 20% below SPT/ACT.</li>
+            <li>R500 and θ500 are derived from the adopted M500 and z with Planck18 and are indicative only.</li>
+          </ul>
+        </details>
+        <details class="about">
+          <summary>Citing</summary>
+          <p class="hint">Please cite the original catalogs for any values you use; each catalog name links to its paper. The build pipeline is public: <a id="pipelineLink" href="https://github.com/kfinner/cluster-dashboard" target="_blank" rel="noopener">cluster-dashboard</a>.</p>
+        </details>
+        <details class="about">
+          <summary>Input catalogs</summary>
+          <div id="catalogRefs" class="catalog-ref-list"></div>
+        </details>
       </section>
     </aside>
 
     <main class="content">
+      <section class="card view-bar" aria-label="Plot options">
+        <div id="statTiles" class="stat-row"></div>
+        <div class="view-controls">
+          <label class="inline-label">
+            <span>Colour by</span>
+            <select id="colorBySelect">
+              <option value="detection">Detection method</option>
+              <option value="mass">Mass source</option>
+            </select>
+          </label>
+          <div id="legend" class="legend" aria-label="Legend"></div>
+        </div>
+      </section>
+
+      <section class="plots">
+        <article class="plot-card card">
+          <div class="card-head">
+            <h3>Sky distribution</h3>
+            <p class="hint">Mollweide, equatorial (J2000); RA increases to the left. Click a point to select it.</p>
+          </div>
+          <div id="skyPlot" class="plot-target"></div>
+        </article>
+        <article class="plot-card card">
+          <div class="card-head">
+            <h3>Mass vs redshift</h3>
+            <p id="massPlotNote" class="hint">Adopted M<sub>500c</sub>; clusters with both z and mass.</p>
+          </div>
+          <div id="massPlot" class="plot-target"></div>
+        </article>
+      </section>
+
       <section class="workspace">
-        <div class="main-stack">
-          <section class="plots">
-            <article class="plot-card card">
-              <div class="card-head">
-                <h3>Sky Distribution</h3>
-              </div>
-              <div id="skyPlot" class="plot-target"></div>
-            </article>
-            <article class="plot-card card">
-              <div class="card-head">
-                <h3>Mass vs Redshift</h3>
-              </div>
-              <div id="massPlot" class="plot-target"></div>
-            </article>
+        <article class="card table-card">
+          <div class="card-head card-head--row">
+            <div>
+              <h3>Clusters</h3>
+              <p id="tableSummary" class="hint">Showing 0 rows.</p>
+            </div>
+            <div class="table-actions">
+              <label class="inline-label">
+                <span>Rows</span>
+                <input id="displayLimitInput" type="number" min="50" max="20000" step="50" value="1000">
+              </label>
+              <button id="downloadCsvBtn" class="ghost-button" type="button" title="All fields of the filtered clusters">CSV</button>
+              <button id="downloadTargetsBtn" class="ghost-button" type="button" title="Name, sexagesimal coordinates, z, M500 for observing tools">Target list</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="resultsTable">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="hint">Click a column header to sort; click a row to see every catalog's measurements.</p>
+        </article>
+
+        <article class="card details-card" aria-live="polite">
+          <div class="details-head">
+            <p class="eyebrow">Selected cluster</p>
+            <h3 id="detailName">-</h3>
+            <div id="detailAliases" class="chip-row"></div>
+            <div id="detailFlags" class="chip-row"></div>
+          </div>
+
+          <div id="detailCoords" class="coord-block"></div>
+          <div id="detailFacts" class="summary-grid"></div>
+
+          <section class="details-section">
+            <h4>M<sub>500c</sub> by survey family</h4>
+            <div class="fields-wrap">
+              <table id="massTable" class="compact-table"><tbody></tbody></table>
+            </div>
           </section>
 
-          <article class="card table-card">
-            <div class="card-head">
-              <h3>Catalog Table</h3>
-              <p id="tableSummary">Showing 0 rows.</p>
+          <div id="externalLinks" class="link-row"></div>
+
+          <div class="viewer-toolbar">
+            <label class="inline-label">
+              <span>Image</span>
+              <select id="surveySelect"></select>
+            </label>
+            <button id="panelsBtn" class="ghost-button" type="button" aria-expanded="false" aria-controls="panelsWrap">Multiwavelength panels</button>
+          </div>
+          <div id="aladinContainer" class="aladin-shell"></div>
+          <div id="aladinLegend" class="legend legend--small"></div>
+
+          <section id="panelsWrap" class="mw-panels" hidden>
+            <div class="mw-head">
+              <h4>Multiwavelength view</h4>
+              <label class="inline-label">
+                <span>Field</span>
+                <select id="panelFovSelect">
+                  <option value="auto">Auto (≈5 θ500)</option>
+                  <option value="5">5′</option>
+                  <option value="10">10′</option>
+                  <option value="20">20′</option>
+                  <option value="40">40′</option>
+                </select>
+              </label>
             </div>
-            <div class="table-wrap">
-              <table id="resultsTable">
+            <p class="hint">Surveys whose footprint should include this cluster (approximate). Tiles load from each survey's own server; a blank panel means no data there. Circle = θ500, cross = adopted position. Click a title to open it in the main viewer.</p>
+            <div id="panelsGrid" class="mw-grid"></div>
+          </section>
+
+          <section class="details-section">
+            <h4>Measurements by catalog</h4>
+            <div class="fields-wrap">
+              <table id="membersTable" class="members-table">
                 <thead></thead>
                 <tbody></tbody>
               </table>
             </div>
-          </article>
-        </div>
-
-        <article class="card details-card">
-          <div class="card-head">
-            <h3>Selected Cluster</h3>
-          </div>
-
-          <div id="detailsSummary" class="summary-grid"></div>
-
-          <div class="viewer-toolbar">
-            <label>
-              <span>Aladin Survey</span>
-              <select id="surveySelect"></select>
-            </label>
-          </div>
-          <div id="aladinContainer" class="aladin-shell"></div>
-
-          <section class="details-section">
-            <div class="group-heading">
-              <h4>Alternate Names</h4>
-            </div>
-            <div id="alternateNames" class="chip-row"></div>
+            <p class="hint">Bold = adopted as the cluster's z or M500. Offsets are from the adopted position. Faded rows are superseded catalog versions.</p>
           </section>
 
-          <section class="details-section">
-            <div class="group-heading">
-              <h4>All Fields</h4>
-            </div>
+          <details class="details-section">
+            <summary>All fields</summary>
             <div class="fields-wrap">
-              <table id="fieldsTable" class="fields-table">
-                <tbody></tbody>
-              </table>
+              <table id="fieldsTable" class="fields-table"><tbody></tbody></table>
             </div>
-          </section>
+          </details>
         </article>
       </section>
     </main>
