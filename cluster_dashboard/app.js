@@ -209,12 +209,6 @@ const QUICK_FILTERS = [
     get: () => box(els.footprintChecks, "euclid_dr1").checked, set: (on) => { box(els.footprintChecks, "euclid_dr1").checked = on; } },
   { key: "euclid_q1", label: "Euclid Q1", get: () => box(els.footprintChecks, "euclid_q1").checked,
     set: (on) => { box(els.footprintChecks, "euclid_q1").checked = on; } },
-  { key: "sz", label: "SZ-detected", get: () => box(els.familyChecks, "SZ").checked,
-    set: (on) => { box(els.familyChecks, "SZ").checked = on; } },
-  { key: "specz", label: "Spectroscopic z", get: () => els.zRequireSelect.value === "spec",
-    set: (on) => { els.zRequireSelect.value = on ? "spec" : "any"; } },
-  { key: "radio", label: "Radio halo / relic", get: () => box(els.radioChecks, "halo").checked && box(els.radioChecks, "relic").checked,
-    set: (on) => { box(els.radioChecks, "halo").checked = on; box(els.radioChecks, "relic").checked = on; } }
 ];
 
 function renderQuickFilters() {
@@ -987,7 +981,6 @@ function renderStats() {
   }
   const tile = (label, value) => `<div class="stat"><span class="stat-label">${esc(label)}</span><span class="stat-value">${fmtInt(value)}</span></div>`;
   els.statTiles.innerHTML = [
-    tile("Clusters shown", rows.length),
     tile("Spectroscopic z", spec),
     tile(`With M500 (${MASS_SOURCES[state.massSource].label.toLowerCase()})`, mass),
     tile("SZ-detected", sz),
@@ -1412,10 +1405,10 @@ function renderDetails(row) {
     ["M500c (adopted)", mText, row.m500_src ? `from ${catLabel(row.m500_src)}` : "", defn],
     ["R500 · θ500", Number.isFinite(row.r500_mpc) ? `${fix(row.r500_mpc, 2)} Mpc · ${fix(row.theta500_arcmin, 1)}′` : "–", "from adopted M500, z (Planck18)"],
     ["SZ S/N", Number.isFinite(row.sz_snr) ? fix(row.sz_snr, 1) : "–", row.sz_snr_src ? catLabel(row.sz_snr_src) : ""],
-    ["Richness", Number.isFinite(row.richness) ? fix(row.richness, 1) : "–", row.richness_src ? catLabel(row.richness_src) : ""],
-    ["Dynamical state", row.dyn_state ? `${esc(row.dyn_state)}` : "–", Number.isFinite(row.dyn_delta) ? `δ = ${fix(row.dyn_delta, 2)} (Yuan & Han)` : ""],
-    ["Catalogs", `${row.n_catalogs ?? "–"} entries`, `${row.n_surveys ?? "–"} independent surveys`],
-    ["Detected in", famBadges(row, true) || "–", [...row._groups].filter((g) => !isPropertyGroup(g)).join(", ")],
+    ...(Number.isFinite(row.richness) ? [["Richness", fix(row.richness, 1), row.richness_src ? catLabel(row.richness_src) : ""]] : []),
+    ...(row.dyn_state ? [["Dynamical state", esc(row.dyn_state), Number.isFinite(row.dyn_delta) ? `δ = ${fix(row.dyn_delta, 2)} (Yuan & Han)` : ""]] : []),
+    ["Detected by", famBadges(row, true) || "–",
+      `${[...row._groups].filter((g) => !isPropertyGroup(g)).join(", ")} · ${row.n_surveys ?? "–"} independent surveys, ${row.n_catalogs ?? "–"} entries (Measurements tab)`],
     ["Inside footprint of", Object.values(FOOTPRINTS).filter((fp) => fp.test(row)).map((fp) => esc(fp.label)).join(" · ") || "–",
       "Euclid flags from the reference-survey footprint; others approximate"],
     ["Diffuse radio", radioDetail(row), row.radio_catalogs ? "each classification links to its paper; see also the table below" : "not covered by the radio compilations"]

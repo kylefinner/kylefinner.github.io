@@ -18,9 +18,9 @@
     // apply a saved theme before the first paint (no flash); "auto" follows the system setting
     try { var t = localStorage.getItem("ce-theme"); if (t === "dark" || t === "light") document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
-  <link rel="stylesheet" href="./styles.css?v=202611151348">
+  <link rel="stylesheet" href="./styles.css?v=202611151355">
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
-  <script src="./app.js?v=202611151348" defer></script>
+  <script src="./app.js?v=202611151355" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -180,10 +180,7 @@
 
         <div class="stacked-actions sticky-actions">
           <p class="hint">Filters apply as you type.</p>
-          <div class="two-up">
-            <button id="applyFiltersBtn" class="ghost-button full-width" type="submit">Apply</button>
-            <button id="resetFiltersBtn" class="ghost-button full-width" type="button">Reset all</button>
-          </div>
+          <button id="resetFiltersBtn" class="ghost-button full-width" type="button">Reset all filters</button>
         </div>
       </form>
 
@@ -289,7 +286,6 @@
             <button type="button" class="tab" role="tab" data-tab="overview" aria-selected="true">Overview</button>
             <button type="button" class="tab" role="tab" data-tab="images" aria-selected="false">Images</button>
             <button type="button" class="tab" role="tab" data-tab="measurements" aria-selected="false">Measurements</button>
-            <button type="button" class="tab" role="tab" data-tab="fields" aria-selected="false">All fields</button>
           </div>
 
           <div class="tab-panel" data-panel="overview" role="tabpanel">
@@ -355,12 +351,12 @@
               </table>
             </div>
             <p class="hint">Bold = adopted as the cluster's z or M500. Offsets are from the adopted position. Faded rows are superseded catalog versions. Each catalog name links to its paper.</p>
-          </div>
-
-          <div class="tab-panel" data-panel="fields" role="tabpanel" hidden>
-            <div class="fields-wrap">
-              <table id="fieldsTable" class="fields-table"><tbody></tbody></table>
-            </div>
+            <details class="details-section">
+              <summary>Raw record (every field of this cluster)</summary>
+              <div class="fields-wrap">
+                <table id="fieldsTable" class="fields-table"><tbody></tbody></table>
+              </div>
+            </details>
           </div>
         </article>
       </section>
