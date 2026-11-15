@@ -1770,3 +1770,70 @@ a.mw-title {
     margin-left: 0;
   }
 }
+
+
+/* collapsible filter sections */
+.control-details > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.control-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.control-details > summary::before {
+  content: "▸";
+  color: var(--muted);
+  font-size: 0.8rem;
+  transition: transform 120ms ease;
+}
+
+.control-details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.control-details-body {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* phones: one line of quick filters, compact stats */
+@media (max-width: 700px) {
+  .quick-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .quick-btn {
+    white-space: nowrap;
+  }
+
+  .stat-row {
+    gap: 4px 14px;
+  }
+
+  .stat {
+    grid-auto-flow: column;
+    align-items: baseline;
+    gap: 5px;
+  }
+
+  .stat-value {
+    font-size: 0.95rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  .view-bar {
+    gap: 10px;
+  }
+}

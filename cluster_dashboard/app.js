@@ -284,6 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "statusText", "filterForm", "searchInput", "radiusInput", "radiusLabel", "posFeedback", "examples",
     "activeRow", "activeFilters", "clearAllBtn", "copyLinkBtn", "togglePlotsBtn", "plots", "columnsList", "columnsMenu",
     "detailTabs", "filtersToggle", "closeFiltersBtn", "sidebar", "sidebarBackdrop", "surveyActive", "catalogActive",
+    "footprintSection", "radioSection", "qualitySection", "footprintActive", "radioActive", "qualityActive",
     "zMinInput", "zMaxInput", "zRequireSelect", "massSourceSelect", "massMinInput", "massMaxInput",
     "mustMassInput", "familyChecks", "nSurveysInput", "dynSelect", "hideConflictInput", "hidePairInput",
     "requiredCatalogs", "resetFiltersBtn", "buildInfo",
@@ -543,7 +544,12 @@ function bindEvents() {
     els.aladinContainer.scrollIntoView({ behavior: "smooth", block: "center" });
   });
   els.searchInput.addEventListener("input", updateSearchFeedback);
-  els.radiusInput.addEventListener("change", applyFilters);
+  let typeTimer = null;
+  els.filterForm.addEventListener("input", (event) => {  // typed fields apply after a short pause
+    if (!event.target.matches('input[type="search"], input[type="number"], input[type="text"]')) return;
+    clearTimeout(typeTimer);
+    typeTimer = setTimeout(applyFilters, 400);
+  });
   els.examples.addEventListener("click", (event) => {
     const btn = event.target.closest("[data-params]");
     if (!btn) return;
@@ -748,6 +754,9 @@ function applyParams(params, { reset = false } = {}) {
     state.colorBy = get("color");
     els.colorBySelect.value = state.colorBy;
   }
+  if (get("in")) els.footprintSection.open = true;
+  if (get("radio") || get("cand")) els.radioSection.open = true;
+  if (get("nsurv") || get("dyn") || get("noconf") || get("nopair")) els.qualitySection.open = true;
 }
 
 function buildParams() {
@@ -832,6 +841,11 @@ function renderActiveFilters() {
   const f = state.lastFilters || {};
   els.surveyActive.textContent = f.surveys?.length ? `${f.surveys.length} set` : "";
   els.catalogActive.textContent = f.catalogs?.length ? `${f.catalogs.length} set` : "";
+  els.footprintActive.textContent = f.footprints?.length ? `${f.footprints.length} set` : "";
+  const nRadio = (f.radioKinds?.length || 0) + (f.radioCand === false ? 1 : 0);
+  els.radioActive.textContent = nRadio ? `${nRadio} set` : "";
+  const nQual = (f.nSurveys > 0 ? 1 : 0) + (f.dyn && f.dyn !== "any" ? 1 : 0) + (f.hideConflict ? 1 : 0) + (f.hidePair ? 1 : 0);
+  els.qualityActive.textContent = nQual ? `${nQual} set` : "";
 }
 
 function passes(row, f) {
