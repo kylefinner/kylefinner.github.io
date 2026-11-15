@@ -281,10 +281,12 @@ const els = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   [
-    "statusText", "filterForm", "searchInput", "posInput", "radiusInput", "posFeedback",
+    "statusText", "filterForm", "searchInput", "radiusInput", "radiusLabel", "posFeedback", "examples",
+    "activeRow", "activeFilters", "clearAllBtn", "copyLinkBtn", "togglePlotsBtn", "plots", "columnsList", "columnsMenu",
+    "detailTabs", "filtersToggle", "closeFiltersBtn", "sidebar", "sidebarBackdrop", "surveyActive", "catalogActive",
     "zMinInput", "zMaxInput", "zRequireSelect", "massSourceSelect", "massMinInput", "massMaxInput",
     "mustMassInput", "familyChecks", "nSurveysInput", "dynSelect", "hideConflictInput", "hidePairInput",
-    "requiredCatalogs", "catalogCount", "resetFiltersBtn", "buildInfo", "catalogRefs", "pipelineLink",
+    "requiredCatalogs", "resetFiltersBtn", "buildInfo",
     "statTiles", "colorBySelect", "legend", "skyPlot", "massPlot", "massPlotNote",
     "tableSummary", "displayLimitInput", "downloadCsvBtn", "downloadTargetsBtn", "resultsTable",
     "detailName", "detailAliases", "detailFlags", "detailCoords", "detailFacts", "massTable",
@@ -298,11 +300,11 @@ document.addEventListener("DOMContentLoaded", () => {
   els.surveySelect.innerHTML = HIPS_SURVEYS
     .map((h) => `<option value="${h.key}">${esc(h.title)} (${esc(h.band)})</option>`).join("");
   initTheme();
-  if (window.matchMedia("(max-width: 1000px)").matches) {
-    document.getElementById("moreFilters").open = false; // phones: search first, other filters on demand
-  }
   bindEvents();
   renderQuickFilters();
+  initTabs();
+  initColumns();
+  initPlotsToggle();
   load().catch((error) => {
     console.error(error);
     setStatus("Could not load the catalog (data/clusters.json.gz).");
@@ -333,24 +335,7 @@ async function load() {
 
   const fromHash = findByName(decodeURIComponent(location.hash.replace(/^#/, "")));
   const params = new URLSearchParams(location.search);
-  if (params.get("color") && COLOR_MODES[params.get("color")]) {
-    state.colorBy = params.get("color");
-    els.colorBySelect.value = state.colorBy;
-  }
-  (params.get("in") || "").split(",").filter(Boolean).forEach((k) => {
-    const box = els.footprintChecks.querySelector(`input[value="${CSS.escape(k)}"]`);
-    if (box) box.checked = true;
-  });
-  (params.get("survey") || "").split(",").filter(Boolean).forEach((item) => {
-    const exclude = item.startsWith("-");
-    const name = exclude ? item.slice(1) : item;
-    const sel = [...els.surveyFilters.querySelectorAll("select")].find((x) => x.dataset.group.toLowerCase() === name.toLowerCase());
-    if (sel) sel.value = exclude ? "no" : "yes";
-  });
-  (params.get("radio") || "").split(",").filter(Boolean).forEach((k) => {
-    const box = els.radioChecks.querySelector(`input[value="${CSS.escape(k)}"]`);
-    if (box) box.checked = true;
-  });
+  applyParams(params);
   if (params.has("panels")) {
     els.panelsWrap.hidden = false;
     els.panelsBtn.setAttribute("aria-expanded", "true");
@@ -557,12 +542,46 @@ function bindEvents() {
     if (current) renderViewer(current);
     els.aladinContainer.scrollIntoView({ behavior: "smooth", block: "center" });
   });
-  els.posInput.addEventListener("input", () => {
-    const pos = parseCoordinates(els.posInput.value);
-    els.posFeedback.textContent = els.posInput.value.trim()
-      ? (pos ? `RA ${pos.ra.toFixed(5)}°, Dec ${pos.dec.toFixed(5)}°` : "Could not read these coordinates.")
-      : "";
+  els.searchInput.addEventListener("input", updateSearchFeedback);
+  els.radiusInput.addEventListener("change", applyFilters);
+  els.examples.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-params]");
+    if (!btn) return;
+    applyParams(new URLSearchParams(btn.dataset.params), { reset: true });
+    applyFilters();
   });
+  els.activeFilters.addEventListener("click", (event) => {
+    const chip = event.target.closest("[data-clear]");
+    if (!chip) return;
+    const item = state.activeItems?.[Number(chip.dataset.clear)];
+    if (item) {
+      item.clear();
+      applyFilters();
+    }
+  });
+  els.clearAllBtn.addEventListener("click", resetFilters);
+  els.copyLinkBtn.addEventListener("click", () => {
+    syncUrl();
+    const done = () => {
+      els.copyLinkBtn.textContent = "Link copied";
+      setTimeout(() => { els.copyLinkBtn.textContent = "Copy link"; }, 1500);
+    };
+    navigator.clipboard?.writeText(location.href).then(done).catch(() => { window.prompt("Copy this link:", location.href); });
+  });
+  const closeDrawer = () => {
+    els.sidebar.classList.remove("is-open");
+    els.sidebarBackdrop.hidden = true;
+    els.filtersToggle.setAttribute("aria-expanded", "false");
+  };
+  els.filtersToggle.addEventListener("click", () => {
+    const open = !els.sidebar.classList.contains("is-open");
+    els.sidebar.classList.toggle("is-open", open);
+    els.sidebarBackdrop.hidden = !open;
+    els.filtersToggle.setAttribute("aria-expanded", String(open));
+  });
+  els.closeFiltersBtn.addEventListener("click", closeDrawer);
+  els.sidebarBackdrop.addEventListener("click", closeDrawer);
+  els.filterForm.addEventListener("submit", () => { if (window.matchMedia("(max-width: 1000px)").matches) closeDrawer(); });
 
   els.resultsTable.addEventListener("click", (event) => {
     const header = event.target.closest("th[data-key]");
@@ -625,10 +644,11 @@ function setMassSource(key) {
 function getFilters() {
   const families = Array.from(els.familyChecks.querySelectorAll("input:checked")).map((i) => i.value);
   const catalogs = Array.from(els.requiredCatalogs.querySelectorAll("input:checked")).map((i) => i.value);
-  const pos = parseCoordinates(els.posInput.value);
+  const raw = els.searchInput.value.trim();
+  const pos = parseCoordinates(raw);
   const radius = Math.max(num(els.radiusInput.value) || 10, 0);
   return {
-    query: els.searchInput.value.trim().toLowerCase().replace(/\s+/g, " "),
+    query: pos ? "" : raw.toLowerCase().replace(/\s+/g, " "),
     pos: pos ? { ...pos, cosR: Math.cos((radius / 60) * Math.PI / 180), radius } : null,
     zMin: num(els.zMinInput.value),
     zMax: num(els.zMaxInput.value),
@@ -661,6 +681,157 @@ function applyFilters() {
   state.lastFilters = f;
   sortFiltered();
   renderAll();
+  syncUrl();
+}
+
+function updateSearchFeedback() {
+  const raw = els.searchInput.value.trim();
+  const pos = parseCoordinates(raw);
+  els.radiusLabel.hidden = !pos;
+  els.posFeedback.textContent = pos ? `Position search: RA ${pos.ra.toFixed(4)}°, Dec ${pos.dec.toFixed(4)}°` : "";
+}
+
+/* ---------- the view as URL parameters (shareable links, example searches) */
+
+const FAMILY_KEYS = ["SZ", "X-ray", "optical", "IR"];
+
+function setChecks(root, values) {
+  const want = new Set(values);
+  root.querySelectorAll('input[type="checkbox"]').forEach((i) => { i.checked = want.has(i.value); });
+}
+
+function checked(root) {
+  return [...root.querySelectorAll('input[type="checkbox"]:checked')].map((i) => i.value);
+}
+
+function applyParams(params, { reset = false } = {}) {
+  if (reset) {
+    els.filterForm.reset();
+    els.radiusInput.value = "10";
+    els.nSurveysInput.value = "0";
+    els.surveyFilters.querySelectorAll("select").forEach((x) => { x.value = "any"; });
+  }
+  const get = (k) => params.get(k);
+  const list = (k) => (get(k) || "").split(",").filter(Boolean);
+  if (get("q")) els.searchInput.value = get("q");
+  if (get("pos")) {
+    els.searchInput.value = get("pos").replace(",", " ");
+    if (get("r")) els.radiusInput.value = get("r");
+  }
+  updateSearchFeedback();
+  if (get("zmin")) els.zMinInput.value = get("zmin");
+  if (get("zmax")) els.zMaxInput.value = get("zmax");
+  if (get("zreq")) els.zRequireSelect.value = get("zreq");
+  if (get("mmin")) els.massMinInput.value = get("mmin");
+  if (get("mmax")) els.massMaxInput.value = get("mmax");
+  if (get("mustm")) els.mustMassInput.checked = true;
+  if (get("mass") && MASS_SOURCES[get("mass")]) {
+    els.massSourceSelect.value = get("mass");
+    setMassSource(get("mass"));
+  }
+  if (get("fam")) setChecks(els.familyChecks, list("fam"));
+  if (get("nsurv")) els.nSurveysInput.value = get("nsurv");
+  if (get("dyn")) els.dynSelect.value = get("dyn");
+  if (get("noconf")) els.hideConflictInput.checked = true;
+  if (get("nopair")) els.hidePairInput.checked = true;
+  if (get("radio")) setChecks(els.radioChecks, list("radio"));
+  if (get("cand") === "0") els.radioCandInput.checked = false;
+  if (get("in")) setChecks(els.footprintChecks, list("in"));
+  if (get("cat")) setChecks(els.requiredCatalogs, list("cat"));
+  list("survey").forEach((item) => {
+    const exclude = item.startsWith("-");
+    const name = exclude ? item.slice(1) : item;
+    const sel = [...els.surveyFilters.querySelectorAll("select")].find((x) => x.dataset.group.toLowerCase() === name.toLowerCase());
+    if (sel) sel.value = exclude ? "no" : "yes";
+  });
+  if (get("color") && COLOR_MODES[get("color")]) {
+    state.colorBy = get("color");
+    els.colorBySelect.value = state.colorBy;
+  }
+}
+
+function buildParams() {
+  const p = new URLSearchParams();
+  const f = state.lastFilters || getFilters();
+  if (f.pos) {
+    p.set("pos", `${f.pos.ra.toFixed(5)},${f.pos.dec.toFixed(5)}`);
+    if (f.pos.radius !== 10) p.set("r", String(f.pos.radius));
+  } else if (f.query) {
+    p.set("q", els.searchInput.value.trim());
+  }
+  if (Number.isFinite(f.zMin)) p.set("zmin", String(f.zMin));
+  if (Number.isFinite(f.zMax)) p.set("zmax", String(f.zMax));
+  if (f.zRequire !== "any") p.set("zreq", f.zRequire);
+  if (Number.isFinite(f.mMin)) p.set("mmin", String(f.mMin));
+  if (Number.isFinite(f.mMax)) p.set("mmax", String(f.mMax));
+  if (f.mustMass) p.set("mustm", "1");
+  if (state.massSource !== "best") p.set("mass", state.massSource);
+  if (f.families.length) p.set("fam", f.families.join(","));
+  if (f.nSurveys > 0) p.set("nsurv", String(f.nSurveys));
+  if (f.dyn !== "any") p.set("dyn", f.dyn);
+  if (f.hideConflict) p.set("noconf", "1");
+  if (f.hidePair) p.set("nopair", "1");
+  if (f.radioKinds.length) p.set("radio", f.radioKinds.join(","));
+  if (!f.radioCand) p.set("cand", "0");
+  if (f.surveys.length) p.set("survey", f.surveys.map(([g, m]) => (m === "yes" ? g : `-${g}`)).join(","));
+  if (f.footprints.length) p.set("in", f.footprints.join(","));
+  if (f.catalogs.length) p.set("cat", f.catalogs.join(","));
+  if (state.colorBy !== "detection") p.set("color", state.colorBy);
+  if (els.panelsWrap && !els.panelsWrap.hidden) p.set("panels", "1");
+  return p;
+}
+
+function syncUrl() {
+  const qs = buildParams().toString();
+  history.replaceState(null, "", `${location.pathname}${qs ? `?${qs}` : ""}${location.hash}`);
+}
+
+/* ---------- active-filter chips */
+
+function activeItems() {
+  const f = state.lastFilters || getFilters();
+  const items = [];
+  const add = (label, clear) => items.push({ label, clear });
+  if (f.pos) add(`within ${f.pos.radius}′ of ${f.pos.ra.toFixed(3)}°, ${f.pos.dec.toFixed(3)}°`, () => { els.searchInput.value = ""; updateSearchFeedback(); });
+  else if (f.query) add(`name “${els.searchInput.value.trim()}”`, () => { els.searchInput.value = ""; });
+  if (Number.isFinite(f.zMin) || Number.isFinite(f.zMax)) {
+    add(`z ${Number.isFinite(f.zMin) ? `≥ ${f.zMin}` : ""}${Number.isFinite(f.zMin) && Number.isFinite(f.zMax) ? " and " : ""}${Number.isFinite(f.zMax) ? `≤ ${f.zMax}` : ""}`,
+      () => { els.zMinInput.value = ""; els.zMaxInput.value = ""; });
+  }
+  if (f.zRequire === "has") add("has a redshift", () => { els.zRequireSelect.value = "any"; });
+  if (f.zRequire === "spec") add("spectroscopic z", () => { els.zRequireSelect.value = "any"; });
+  if (Number.isFinite(f.mMin) || Number.isFinite(f.mMax)) {
+    add(`M500 ${Number.isFinite(f.mMin) ? `≥ ${f.mMin}` : ""}${Number.isFinite(f.mMin) && Number.isFinite(f.mMax) ? " and " : ""}${Number.isFinite(f.mMax) ? `≤ ${f.mMax}` : ""} ×10¹⁴`,
+      () => { els.massMinInput.value = ""; els.massMaxInput.value = ""; });
+  }
+  if (f.mustMass) add(`has a ${MASS_SOURCES[state.massSource].label.toLowerCase()} mass`, () => { els.mustMassInput.checked = false; });
+  f.families.forEach((fam) => add(`${FAMILY_STYLE[fam]?.label || fam}-detected`, () => { box(els.familyChecks, fam).checked = false; }));
+  if (f.nSurveys > 0) add(`≥ ${f.nSurveys} surveys`, () => { els.nSurveysInput.value = "0"; });
+  if (f.dyn !== "any") add(f.dyn, () => { els.dynSelect.value = "any"; });
+  if (f.hideConflict) add("no z conflicts", () => { els.hideConflictInput.checked = false; });
+  if (f.hidePair) add("no close pairs", () => { els.hidePairInput.checked = false; });
+  if (f.radioKinds.length) {
+    const names = f.radioKinds.map((k) => (RADIO_KINDS.find(([key]) => key === k) || [k, k])[1].toLowerCase());
+    add(`radio ${names.join(" / ")}${f.radioCand ? "" : " (confirmed only)"}`, () => { setChecks(els.radioChecks, []); els.radioCandInput.checked = true; });
+  }
+  f.surveys.forEach(([g, m]) => add(`${m === "yes" ? "" : "not "}${g}`, () => {
+    const sel = [...els.surveyFilters.querySelectorAll("select")].find((x) => x.dataset.group === g);
+    if (sel) sel.value = "any";
+  }));
+  f.footprints.forEach((k) => add(`in ${FOOTPRINTS[k]?.label || k}`, () => { box(els.footprintChecks, k).checked = false; }));
+  f.catalogs.forEach((k) => add(`in ${catLabel(k)}`, () => { box(els.requiredCatalogs, k).checked = false; }));
+  return items;
+}
+
+function renderActiveFilters() {
+  const items = activeItems();
+  state.activeItems = items;
+  els.activeRow.hidden = items.length === 0;
+  els.activeFilters.innerHTML = items.map((it, i) =>
+    `<button type="button" class="active-chip" data-clear="${i}" title="Remove this filter">${esc(it.label)} <span class="x" aria-hidden="true">×</span></button>`).join("");
+  const f = state.lastFilters || {};
+  els.surveyActive.textContent = f.surveys?.length ? `${f.surveys.length} set` : "";
+  els.catalogActive.textContent = f.catalogs?.length ? `${f.catalogs.length} set` : "";
 }
 
 function passes(row, f) {
@@ -741,7 +912,9 @@ function resetFilters() {
   els.filterForm.reset();
   els.radiusInput.value = "10";
   els.nSurveysInput.value = "0";
-  els.posFeedback.textContent = "";
+  els.surveyFilters.querySelectorAll("select").forEach((x) => { x.value = "any"; });
+  updateSearchFeedback();
+  els.massSourceSelect.value = "best";
   setMassSource("best");
   applyFilters();
 }
@@ -770,6 +943,7 @@ function sortFiltered() {
 
 function renderAll() {
   syncQuickFilters();
+  renderActiveFilters();
   setStatus(statusText());
   renderStats();
   renderLegend();
@@ -844,7 +1018,25 @@ function sample(rows, max) {
   return out;
 }
 
+function initPlotsToggle() {
+  let hidden = false;
+  try { hidden = localStorage.getItem("ce-plots") === "hidden"; } catch (error) { /* ignore */ }
+  const apply = (hide) => {
+    els.plots.hidden = hide;
+    els.togglePlotsBtn.textContent = hide ? "Show plots" : "Hide plots";
+    els.togglePlotsBtn.setAttribute("aria-expanded", String(!hide));
+  };
+  apply(hidden);
+  els.togglePlotsBtn.addEventListener("click", () => {
+    const hide = !els.plots.hidden;
+    apply(hide);
+    try { localStorage.setItem("ce-plots", hide ? "hidden" : "shown"); } catch (error) { /* ignore */ }
+    if (!hide) renderPlots();
+  });
+}
+
 function renderPlots() {
+  if (els.plots.hidden) return;
   if (!window.Plotly) {
     setTimeout(renderPlots, 300);
     return;
@@ -1037,20 +1229,54 @@ const TABLE_COLUMNS = [
   { key: "_flags", label: "Flags", sortValue: (r) => (r.z_conflict ? 2 : 0) + (r.close_pair ? 1 : 0), cell: (r) => flagCell(r) }
 ];
 
+const DEFAULT_COLUMNS = ["name", "z", "_m", "_ms", "families", "radio_summary", "_flags"];
+
+function visibleColumns() {
+  const keys = state.visibleColumns || DEFAULT_COLUMNS;
+  return TABLE_COLUMNS.filter((c) => c.key === "name" || keys.includes(c.key));
+}
+
+function initColumns() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("ce-columns") || "null");
+    if (Array.isArray(saved) && saved.length) state.visibleColumns = saved;
+  } catch (error) { /* ignore */ }
+  const current = new Set((state.visibleColumns || DEFAULT_COLUMNS));
+  els.columnsList.innerHTML = TABLE_COLUMNS.filter((c) => c.key !== "name").map((c) => `
+    <label class="checkbox-item"><input type="checkbox" value="${c.key}" ${current.has(c.key) ? "checked" : ""}><span>${esc(c.label)}${c.unit ? ` (${esc(c.unit)})` : ""}</span></label>`).join("")
+    + `<button type="button" id="columnsResetBtn" class="link-button">Default columns</button>`;
+  els.columnsList.addEventListener("change", () => {
+    state.visibleColumns = checked(els.columnsList);
+    try { localStorage.setItem("ce-columns", JSON.stringify(state.visibleColumns)); } catch (error) { /* ignore */ }
+    renderTable();
+  });
+  document.getElementById("columnsResetBtn").addEventListener("click", () => {
+    state.visibleColumns = null;
+    try { localStorage.removeItem("ce-columns"); } catch (error) { /* ignore */ }
+    const d = new Set(DEFAULT_COLUMNS);
+    els.columnsList.querySelectorAll("input").forEach((i) => { i.checked = d.has(i.value); });
+    renderTable();
+  });
+  document.addEventListener("click", (event) => {
+    if (els.columnsMenu.open && !els.columnsMenu.contains(event.target)) els.columnsMenu.open = false;
+  });
+}
+
 function renderTable() {
   const limit = clamp(Math.trunc(num(els.displayLimitInput.value) || DEFAULT_DISPLAY_LIMIT), 50, 20000);
   const rows = state.filtered.slice(0, limit);
   const head = els.resultsTable.querySelector("thead");
   const body = els.resultsTable.querySelector("tbody");
-  head.innerHTML = `<tr>${TABLE_COLUMNS.map((c) => {
+  const COLS = visibleColumns();
+  head.innerHTML = `<tr>${COLS.map((c) => {
     const arrow = state.sort.key === c.key ? (state.sort.dir > 0 ? " ↑" : " ↓") : "";
     const unit = c.unit ? `<span class="unit">${esc(c.unit)}</span>` : "";
     return `<th data-key="${c.key}" class="${c.sticky ? "sticky-name" : ""} ${c.num ? "num" : ""}" title="${esc(c.title || "Sort by " + c.label)}" scope="col">${esc(c.label)}${arrow}${unit}</th>`;
   }).join("")}</tr>`;
   body.innerHTML = rows.length
-    ? rows.map((r) => `<tr data-id="${r.id}" tabindex="0" class="${r.id === state.selectedId ? "is-selected" : ""}">${TABLE_COLUMNS
+    ? rows.map((r) => `<tr data-id="${r.id}" tabindex="0" class="${r.id === state.selectedId ? "is-selected" : ""}">${COLS
       .map((c) => `<td class="${c.sticky ? "sticky-name" : ""} ${c.num ? "num" : ""}">${c.cell(r)}</td>`).join("")}</tr>`).join("")
-    : `<tr><td class="empty-state" colspan="${TABLE_COLUMNS.length}">No clusters match these filters.</td></tr>`;
+    : `<tr><td class="empty-state" colspan="${COLS.length}">No clusters match these filters.</td></tr>`;
   els.tableSummary.textContent = `Showing ${fmtInt(rows.length)} of ${fmtInt(state.filtered.length)} matching clusters.`;
 }
 
@@ -1098,6 +1324,29 @@ function flagCell(r) {
 }
 
 /* ------------------------------------------------------------------ selection & details */
+
+function initTabs() {
+  els.detailTabs.addEventListener("click", (event) => {
+    const tab = event.target.closest("[data-tab]");
+    if (tab) selectTab(tab.dataset.tab);
+  });
+}
+
+function tabVisible(name) {
+  const panel = document.querySelector(`.tab-panel[data-panel="${name}"]`);
+  return panel && !panel.hidden;
+}
+
+function selectTab(name) {
+  els.detailTabs.querySelectorAll("[data-tab]").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === name)));
+  document.querySelectorAll(".tab-panel").forEach((p) => { p.hidden = p.dataset.panel !== name; });
+  const row = state.byId.get(state.selectedId);
+  if (name === "images" && row && state.viewerStale) {
+    state.viewerStale = false;
+    renderViewer(row);
+    if (!els.panelsWrap.hidden) renderPanels(row);
+  }
+}
 
 function selectCluster(id, { updateHash = true } = {}) {
   const row = state.byId.get(id);
@@ -1190,7 +1439,7 @@ function renderDetails(row) {
     .map((c) => `<tr><td>${esc(c)}</td><td>${esc(Array.isArray(row[c]) ? row[c].join(" | ") : row[c])}</td></tr>`).join("");
 
   renderMembers(row);
-  if (!els.panelsWrap.hidden) renderPanels(row);
+  if (!els.panelsWrap.hidden && tabVisible("images")) renderPanels(row);
   renderViewer(row);
 }
 
@@ -1207,6 +1456,10 @@ function setViewMode(mode) {
 }
 
 function renderViewer(row) {
+  if (!tabVisible("images")) { // Aladin needs a visible container; render when the tab opens
+    state.viewerStale = true;
+    return;
+  }
   const mode = currentViewMode(row);
   const isStatic = mode === "static";
   els.viewStaticBtn.setAttribute("aria-pressed", String(isStatic));
@@ -1555,25 +1808,12 @@ function renderCatalogChecklist(keys) {
         <span>${esc(catLabel(k))}</span>
         <span class="legend-count">${fmtInt(state.catalogInfo[k]?.n_entries || 0)}</span>
       </label>`).join("")}`).join("");
-  els.catalogCount.textContent = String(keys.length);
 }
 
 function renderAbout() {
   const meta = state.meta;
   const when = meta.generated ? new Date(meta.generated).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "";
   els.buildInfo.textContent = `${fmtInt(meta.n_members || 0)} entries from ${(meta.catalogs || []).length} catalogs, grouped into ${fmtInt(meta.n_clusters || state.rows.length)} clusters${when ? ` (built ${when})` : ""}.`;
-  if (meta.pipeline_url) els.pipelineLink.href = meta.pipeline_url;
-  const order = ["SZ", "X-ray", "radio", "lensing", "optical", "IR"];
-  els.catalogRefs.innerHTML = [...(meta.catalogs || [])]
-    .sort((a, b) => order.indexOf(a.family) - order.indexOf(b.family))
-    .map((c) => `
-      <div class="catalog-ref">
-        <strong>${esc(c.label)}</strong>
-        <div class="ref-meta">${esc(c.family)} · ${fmtInt(c.n_entries)} entries${c.superseded_by ? ` · superseded by ${esc(catLabel(c.superseded_by))}` : ""}</div>
-        <div><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.reference)}</a></div>
-        ${c.m500_def ? `<div class="ref-caveat">M500: ${esc(c.m500_def)}</div>` : ""}
-        ${c.caveats ? `<div class="ref-caveat">${esc(c.caveats)}</div>` : ""}
-      </div>`).join("");
 }
 
 /* ------------------------------------------------------------------ downloads */

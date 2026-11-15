@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cluster Explorer · Methods &amp; sources</title>
+  <meta name="description" content="How the galaxy-cluster master catalog is built: input catalogs, matching rules, adopted values, mass caveats and how to cite.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    try { var t = localStorage.getItem("ce-theme"); if (t === "dark" || t === "light") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="./styles.css?v=202611151335">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-title">
+      <a href="../" class="home-link eyebrow">Kyle Finner</a>
+      <h1>Methods &amp; sources</h1>
+      <p id="buildInfo" class="topbar-status">Galaxy cluster master catalog</p>
+    </div>
+    <nav class="topbar-nav" aria-label="Site">
+      <a class="nav-link" href="./">Explorer</a>
+      <a class="nav-link is-current" href="./methods.html">Methods &amp; sources</a>
+      <a class="nav-link" href="../mc2_viewer.html">MC2 archive</a>
+    </nav>
+  </header>
+
+  <main class="doc">
+    <nav class="doc-toc card" aria-label="Contents">
+      <a href="#matching">How catalogs are combined</a>
+      <a href="#adopted">Adopted values</a>
+      <a href="#masses">Mass caveats</a>
+      <a href="#lensing">Weak-lensing masses</a>
+      <a href="#radio">Diffuse radio emission</a>
+      <a href="#footprints">Survey footprints</a>
+      <a href="#flags">Quality flags</a>
+      <a href="#citing">Citing &amp; downloads</a>
+      <a href="#catalogs">Input catalogs</a>
+    </nav>
+
+    <article class="card doc-body">
+      <section id="matching">
+        <h2>How catalogs are combined</h2>
+        <ul class="about-list">
+          <li><strong>Nothing is discarded.</strong> Every entry of every input catalog is kept with its published values. The <em>Measurements</em> tab of each cluster lists them all, and each catalog name links to its paper.</li>
+          <li><strong>Matching.</strong> Entries from different catalogs are grouped when their separation is below 3σ of their combined position errors, or below a physical offset of 0.5 Mpc (0.75 Mpc when an optical/IR centre is involved), always within 1′–10′. SZ position errors scale with the detection significance; Planck uses its own quoted error.</li>
+          <li><strong>SZ and X-ray</strong> detections at the same position trace the same hot gas, so they are always grouped. If their redshifts disagree, the cluster is flagged <em>z conflict</em> rather than split.</li>
+          <li><strong>Optical/IR</strong> systems must also agree in redshift (|Δz| ≤ 0.1(1+z), or 0.03 if both are spectroscopic), so projected systems stay separate. Entries without a redshift from catalogs of nearby clusters (Abell, Zwicky) are never attached to clusters beyond z ≈ 0.4.</li>
+          <li><strong>Best-first grouping.</strong> Pairs are merged from the closest outwards; a merge is refused if it would place two entries of the same catalog in one cluster. This avoids friends-of-friends chaining.</li>
+          <li><strong>Classifications and measurements</strong> (diffuse radio emission, weak-lensing masses) are attached afterwards to the best existing cluster within the same radius, preferring the cluster with the most independent detections. Entries without coordinates are placed by name, or, failing that, from the coordinates encoded in their designation (flagged, ±6′).</li>
+        </ul>
+      </section>
+
+      <section id="adopted">
+        <h2>Adopted values</h2>
+        <ul class="about-list">
+          <li><strong>Redshift:</strong> spectroscopic before photometric, then by catalog quality (SPT-3G and curated SZ follow-up first). Photometric redshifts at the SPT z = 1.6 edge are lower limits and are demoted.</li>
+          <li><strong>M500c:</strong> SPT, then ACT, then X-ray (eRASS1, MCXC), then Planck. Weak-lensing masses are shown as their own family and are never adopted as the headline mass.</li>
+          <li><strong>Position:</strong> the entry with the smallest position error. <strong>Name:</strong> Abell, MACS, XXL, SPT, ACT, Planck, X-ray, then optical designations.</li>
+          <li>Every adopted value names its source; the per-survey mass table shows SPT, ACT, X-ray, Planck and weak-lensing masses side by side.</li>
+        </ul>
+      </section>
+
+      <section id="masses">
+        <h2>Mass caveats</h2>
+        <ul class="about-list">
+          <li>M500c values are shown exactly as published; they are <strong>not</strong> rescaled to a common calibration.</li>
+          <li>Typical offsets in this catalog: ACT DR6 ≈ 5% below SPT (≈10% at z &gt; 1); Planck PSZ2 and MCXC (hydrostatic scale) ≈ 20% below SPT/ACT; ACT ≈ 13% above weak lensing, SPT ≈ equal to weak lensing (median ratios on clusters in common).</li>
+          <li>R500 and θ500 are derived from the adopted M500 and z with the Planck 2018 cosmology and are indicative only.</li>
+          <li>ComPACT candidates borrow redshifts from external catalogs that can be arcminutes away; treat high-z ComPACT-only systems with caution.</li>
+        </ul>
+      </section>
+
+      <section id="lensing">
+        <h2>Weak-lensing masses</h2>
+        <ul class="about-list">
+          <li>Sources: the LC2 compilation (Sereno 2015), HSC-XXL (Umetsu+2020) and the paper tables of the MC2 collaboration (Finner, Jee et al.), SPT/HST (Schrabback+18, +21; Zohren+22; Kim+19), Jee+11, CLASH (Umetsu+16), LoCuSS (Okabe &amp; Smith 16) and CCCP+MENeaCS (Herbonnet+20).</li>
+          <li>The headline weak-lensing mass is the MC2 analysis when there is one, otherwise the paper's preferred value from the most recent paper. Every other measurement is listed in the cluster's Measurements tab with its ADS bibcode.</li>
+          <li>Masses are given for h = 0.7 in 10<sup>14</sup> M<sub>☉</sub>. Where a paper gives only M200c, M500c is converted with an NFW profile (the paper's concentration if given, otherwise Diemer &amp; Joyce 2019); converted values are labelled. Subcluster masses are listed but never used as a cluster's mass.</li>
+          <li>The SPT/HST masses are maximum-likelihood values without the papers' mass-modelling bias corrections; the bias factors are in the notes.</li>
+        </ul>
+      </section>
+
+      <section id="radio">
+        <h2>Diffuse radio emission</h2>
+        <ul class="about-list">
+          <li>Radio halos, relics, mini-halos and phoenixes come from Botteon+2022 (Planck clusters in LoTSS-DR2, 144 MHz) with the relics of Jones+2023, Knowles+2022 (MeerKAT MGCLS, 1.28 GHz) and the MC2 radio-relic sample (Golovich+2019).</li>
+          <li>Each classification keeps its source; a cluster is “confirmed” if any catalog confirms it and “candidate” otherwise. Clusters observed without diffuse emission are marked as such. Clusters outside these compilations are simply unclassified.</li>
+        </ul>
+      </section>
+
+      <section id="footprints">
+        <h2>Survey footprints</h2>
+        <ul class="about-list">
+          <li><strong>Euclid Wide</strong> and <strong>Euclid DR1</strong> flags come from the time-tagged reference-survey footprint. DR1 membership from this map is approximate; the MER tile list is authoritative. Only yes/no flags are published.</li>
+          <li><strong>Euclid Q1</strong>: the three Q1 fields (EDF-N, EDF-S, EDF-F).</li>
+          <li><strong>DESI Legacy Surveys</strong>: |b| &gt; 20°, Dec &gt; −65°, excluding the northern Galactic cap above Dec +34° in the south Galactic hemisphere. <strong>Pan-STARRS</strong>: Dec &gt; −30°. <strong>eROSITA-DE DR1</strong>: Galactic l &gt; 180°. These are simple rules, not exact coverage maps.</li>
+        </ul>
+      </section>
+
+      <section id="flags">
+        <h2>Quality flags</h2>
+        <ul class="about-list">
+          <li><strong>z conflict:</strong> two SZ/X-ray detections of the same cluster disagree in redshift by more than 0.1(1+z).</li>
+          <li><strong>Close pair:</strong> another cluster lies within 2′ at a consistent (or unknown) redshift; it may be a duplicate the matching could not merge, or a genuine pair.</li>
+          <li><strong>Independent surveys:</strong> the number of distinct surveys that detected the cluster (catalog versions of one survey count once; radio and lensing tables do not count).</li>
+        </ul>
+      </section>
+
+      <section id="citing">
+        <h2>Citing &amp; downloads</h2>
+        <ul class="about-list">
+          <li>Please cite the original catalogs for any values you use; each catalog name on the site links to its paper, and the list below gives the references.</li>
+          <li>The build pipeline is public: <a id="pipelineLink" href="https://github.com/kfinner/cluster-dashboard" target="_blank" rel="noopener">cluster-dashboard</a>. Filtered tables can be downloaded from the Explorer as CSV or as an observing target list.</li>
+        </ul>
+      </section>
+
+      <section id="catalogs">
+        <h2>Input catalogs</h2>
+        <div id="catalogRefs" class="catalog-ref-list catalog-ref-list--page"></div>
+      </section>
+    </article>
+  </main>
+
+  <script>
+    (async () => {
+      try {
+        const meta = await fetch("./data/catalogs.json", { cache: "no-store" }).then((r) => r.json());
+        const esc = (v) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        const fmt = (v) => Number(v || 0).toLocaleString();
+        const when = meta.generated ? new Date(meta.generated).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "";
+        document.getElementById("buildInfo").textContent =
+          `${fmt(meta.n_members)} entries from ${(meta.catalogs || []).length} catalogs, grouped into ${fmt(meta.n_clusters)} clusters${when ? ` · built ${when}` : ""}`;
+        if (meta.pipeline_url) document.getElementById("pipelineLink").href = meta.pipeline_url;
+        const order = ["SZ", "X-ray", "radio", "lensing", "optical", "IR"];
+        const labels = { SZ: "Sunyaev–Zel'dovich", "X-ray": "X-ray", radio: "Diffuse radio emission", lensing: "Weak-lensing masses", optical: "Optical", IR: "Infrared" };
+        const byFam = {};
+        (meta.catalogs || []).forEach((c) => { (byFam[c.family] = byFam[c.family] || []).push(c); });
+        const labelOf = Object.fromEntries((meta.catalogs || []).map((c) => [c.key, c.label]));
+        document.getElementById("catalogRefs").innerHTML = order.filter((f) => byFam[f]).map((f) => `
+          <h3 class="catalog-family">${esc(labels[f] || f)}</h3>
+          ${byFam[f].map((c) => `
+            <div class="catalog-ref" id="cat-${esc(c.key)}">
+              <strong>${esc(c.label)}</strong>
+              <div class="ref-meta">${fmt(c.n_entries)} entries${c.superseded_by ? ` · superseded by ${esc(labelOf[c.superseded_by] || c.superseded_by)}` : ""}</div>
+              <div><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.reference)}</a></div>
+              ${c.m500_def ? `<div class="ref-caveat">M500: ${esc(c.m500_def)}</div>` : ""}
+              ${c.caveats ? `<div class="ref-caveat">${esc(c.caveats)}</div>` : ""}
+            </div>`).join("")}`).join("");
+      } catch (error) {
+        document.getElementById("catalogRefs").textContent = "Could not load data/catalogs.json.";
+      }
+    })();
+  </script>
+</body>
+</html>

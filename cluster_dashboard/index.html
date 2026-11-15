@@ -18,43 +18,56 @@
     // apply a saved theme before the first paint (no flash); "auto" follows the system setting
     try { var t = localStorage.getItem("ce-theme"); if (t === "dark" || t === "light") document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
-  <link rel="stylesheet" href="./styles.css?v=202611151305">
+  <link rel="stylesheet" href="./styles.css?v=202611151335">
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
-  <script src="./app.js?v=202611151305" defer></script>
+  <script src="./app.js?v=202611151335" defer></script>
 </head>
 <body>
-  <div class="page-shell">
-    <aside class="sidebar card" aria-label="Search and filters">
-      <div class="sidebar-header">
-        <p class="eyebrow"><a href="../" class="home-link">Kyle Finner</a> · Galaxy cluster master catalog</p>
-        <h1>Cluster Explorer</h1>
-        <p id="statusText" class="lede">Loading cluster data...</p>
-        <p id="loadNotice" class="hint" aria-live="polite"></p>
-        <button id="themeToggle" class="theme-toggle" type="button" title="Cycle theme: auto (system) / dark / light">Theme: auto</button>
-      </div>
+  <header class="topbar">
+    <div class="topbar-title">
+      <a href="../" class="home-link eyebrow">Kyle Finner</a>
+      <h1>Cluster Explorer</h1>
+      <p id="statusText" class="topbar-status">Loading cluster data...</p>
+    </div>
+    <nav class="topbar-nav" aria-label="Site">
+      <a class="nav-link is-current" href="./">Explorer</a>
+      <a class="nav-link" href="./methods.html">Methods &amp; sources</a>
+      <a class="nav-link" href="../mc2_viewer.html">MC2 archive</a>
+      <button id="themeToggle" class="theme-toggle" type="button" title="Cycle theme: auto (system) / dark / light">Theme: auto</button>
+      <button id="filtersToggle" class="ghost-button filters-toggle" type="button" aria-expanded="false" aria-controls="sidebar">Filters</button>
+    </nav>
+  </header>
 
+  <div class="page-shell">
+    <aside id="sidebar" class="sidebar card" aria-label="Search and filters">
       <form id="filterForm" autocomplete="off">
-        <section class="control-group">
-          <h2>Search</h2>
-          <label>
-            <span>Name (any alias)</span>
-            <input id="searchInput" type="search" placeholder="Abell 2744, XLSSC 122, SPT-CL J2106-5844">
-          </label>
-          <div class="two-up two-up--wide-first">
-            <label>
-              <span>Position (RA Dec)</span>
-              <input id="posInput" type="text" placeholder="02:17:44.2 -03:45:31 or 34.43 -3.76">
-            </label>
-            <label>
-              <span>Radius (′)</span>
-              <input id="radiusInput" type="number" step="0.5" min="0" value="10">
-            </label>
+        <section class="control-group control-group--first">
+          <div class="group-heading">
+            <h2>Search</h2>
+            <button id="closeFiltersBtn" class="ghost-button close-filters" type="button">Close</button>
           </div>
+          <label>
+            <span>Name or position</span>
+            <input id="searchInput" type="search" placeholder="Abell 2744 · XLSSC 122 · 02:17:44.2 -03:45:31 · 34.43 -3.76">
+          </label>
           <p id="posFeedback" class="hint" aria-live="polite"></p>
+          <label id="radiusLabel" hidden>
+            <span>Search radius (′)</span>
+            <input id="radiusInput" type="number" step="0.5" min="0" value="10">
+          </label>
+          <p id="loadNotice" class="hint" aria-live="polite"></p>
+          <div class="group-heading">
+            <span class="hint">Try:</span>
+          </div>
+          <div id="examples" class="example-row">
+            <button type="button" class="example" data-params="radio=relic&amp;in=euclid_dr1">Relics in Euclid DR1</button>
+            <button type="button" class="example" data-params="zmin=1.5&amp;zreq=spec">z &gt; 1.5, spectroscopic</button>
+            <button type="button" class="example" data-params="fam=SZ&amp;mmin=10">SZ clusters above 10¹⁵ M☉</button>
+            <button type="button" class="example" data-params="cat=radio_mc2">MC2 relic sample</button>
+            <button type="button" class="example" data-params="mass=wl&amp;mustm=1">With weak-lensing masses</button>
+          </div>
         </section>
 
-        <details id="moreFilters" class="more-filters" open>
-        <summary>More filters</summary>
         <section class="control-group">
           <h2>Redshift</h2>
           <div class="two-up">
@@ -73,17 +86,7 @@
 
         <section class="control-group">
           <h2>Mass M<sub>500c</sub></h2>
-          <label>
-            <span>Mass from</span>
-            <select id="massSourceSelect">
-              <option value="best">Adopted (best available)</option>
-              <option value="spt">SPT surveys</option>
-              <option value="act">ACT</option>
-              <option value="xray">X-ray (eRASS1 / MCXC)</option>
-              <option value="planck">Planck PSZ2</option>
-              <option value="wl">Weak lensing (literature)</option>
-            </select>
-          </label>
+          <p class="hint">Applies to the mass shown (set with “Mass from” above the plots).</p>
           <div class="two-up">
             <label><span>Min (10<sup>14</sup> M<sub>☉</sub>)</span><input id="massMinInput" type="number" step="0.1" min="0"></label>
             <label><span>Max (10<sup>14</sup> M<sub>☉</sub>)</span><input id="massMaxInput" type="number" step="0.1" min="0"></label>
@@ -95,14 +98,56 @@
         </section>
 
         <section class="control-group">
-          <h2>Detection &amp; quality</h2>
+          <h2>Detections</h2>
           <p class="hint">Detected in all checked:</p>
-          <div id="familyChecks" class="checkbox-grid checkbox-grid--4">
+          <div id="familyChecks" class="checkbox-grid">
             <label class="checkbox-item"><input type="checkbox" value="SZ"><span>SZ</span></label>
             <label class="checkbox-item"><input type="checkbox" value="X-ray"><span>X-ray</span></label>
             <label class="checkbox-item"><input type="checkbox" value="optical"><span>Optical</span></label>
             <label class="checkbox-item"><input type="checkbox" value="IR"><span>IR</span></label>
           </div>
+          <details class="sub-details">
+            <summary>By survey <span id="surveyActive" class="legend-count"></span></summary>
+            <p class="hint">Require or exclude each survey (all versions of its catalogs count).</p>
+            <div id="surveyFilters" class="survey-filters"></div>
+          </details>
+          <details class="sub-details">
+            <summary>Individual catalogs (advanced) <span id="catalogActive" class="legend-count"></span></summary>
+            <p class="hint">Require an entry in every checked catalog.</p>
+            <div id="requiredCatalogs" class="catalog-list"></div>
+          </details>
+        </section>
+
+        <section class="control-group">
+          <h2>Inside footprint of</h2>
+          <div id="footprintChecks" class="checkbox-grid">
+            <label class="checkbox-item"><input type="checkbox" value="euclid_wide"><span>Euclid Wide</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="euclid_dr1"><span>Euclid DR1 (approx.)</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="euclid_q1"><span>Euclid Q1 fields</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="legacy"><span>DESI Legacy (approx.)</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="ps1"><span>Pan-STARRS</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="erosita"><span>eROSITA-DE DR1</span></label>
+          </div>
+          <p class="hint">Footprints are approximate; see <a href="./methods.html#footprints">Methods</a>.</p>
+        </section>
+
+        <section class="control-group">
+          <h2>Diffuse radio emission</h2>
+          <p class="hint">Hosts any of the checked:</p>
+          <div id="radioChecks" class="checkbox-grid">
+            <label class="checkbox-item"><input type="checkbox" value="halo"><span>Radio halo</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="relic"><span>Radio relic</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="minihalo"><span>Mini-halo</span></label>
+            <label class="checkbox-item"><input type="checkbox" value="phoenix"><span>Phoenix</span></label>
+          </div>
+          <label class="checkbox-item">
+            <input id="radioCandInput" type="checkbox" checked>
+            <span>Include candidates</span>
+          </label>
+        </section>
+
+        <section class="control-group">
+          <h2>Quality</h2>
           <div class="two-up">
             <label>
               <span>Min. independent surveys</span>
@@ -127,97 +172,40 @@
           </label>
         </section>
 
-        <section class="control-group">
-          <h2>Detected by survey</h2>
-          <p class="hint">Require or exclude detections by each survey (all versions of a survey's catalogs count).</p>
-          <div id="surveyFilters" class="survey-filters"></div>
-        </section>
-
-        <section class="control-group">
-          <h2>Inside footprint of</h2>
-          <div id="footprintChecks" class="checkbox-grid">
-            <label class="checkbox-item"><input type="checkbox" value="euclid_wide"><span>Euclid Wide</span></label>
-            <label class="checkbox-item"><input type="checkbox" value="euclid_dr1"><span>Euclid DR1 (approx.)</span></label>
-            <label class="checkbox-item"><input type="checkbox" value="euclid_q1"><span>Euclid Q1 fields</span></label>
-            <label class="checkbox-item"><input type="checkbox" value="legacy"><span>DESI Legacy (approx.)</span></label>
-            <label class="checkbox-item"><input type="checkbox" value="ps1"><span>Pan-STARRS</span></label>
-            <label class="checkbox-item"><input type="checkbox" value="erosita"><span>eROSITA-DE DR1</span></label>
-          </div>
-          <p class="hint">Euclid Wide and DR1 come from the time-tagged reference-survey footprint (DR1 is approximate; the tile list is authoritative). Pan-STARRS: Dec &gt; −30°; eROSITA-DE: Galactic l &gt; 180°; Legacy: |b| &gt; 20°, Dec &gt; −65°.</p>
-        </section>
-
-        <section class="control-group">
-          <h2>Diffuse radio emission</h2>
-          <p class="hint">Hosts any of the checked (LoTSS-DR2, MeerKAT MGCLS, MC2):</p>
-          <div id="radioChecks" class="checkbox-grid">
-            <label class="checkbox-item"><input type="checkbox" value="halo"><span>Radio halo</span></label>
-            <label class="checkbox-item"><input type="checkbox" value="relic"><span>Radio relic</span></label>
-            <label class="checkbox-item"><input type="checkbox" value="minihalo"><span>Mini-halo</span></label>
-            <label class="checkbox-item"><input type="checkbox" value="phoenix"><span>Phoenix</span></label>
-          </div>
-          <label class="checkbox-item">
-            <input id="radioCandInput" type="checkbox" checked>
-            <span>Include candidates</span>
-          </label>
-        </section>
-
-        <section class="control-group">
-          <div class="group-heading">
-            <h2>Required catalogs</h2>
-            <span id="catalogCount" class="pill">0</span>
-          </div>
-          <div id="requiredCatalogs" class="catalog-list"></div>
-        </section>
-        </details>
-
         <div class="stacked-actions sticky-actions">
           <button id="applyFiltersBtn" class="primary-button full-width" type="submit">Apply filters</button>
           <button id="resetFiltersBtn" class="ghost-button full-width" type="button">Reset all</button>
         </div>
       </form>
 
-      <section class="control-group">
-        <h2>About this catalog</h2>
-        <p id="buildInfo" class="hint"></p>
-        <details class="about">
-          <summary>How catalogs are combined</summary>
-          <ul class="about-list">
-            <li><strong>Nothing is discarded.</strong> Every entry of every input catalog is kept with its published values; the table under each cluster lists them all.</li>
-            <li><strong>Matching.</strong> Entries are grouped when their separation is below 3σ of the combined position errors, or ≤0.5 Mpc (≤0.75 Mpc if an optical/IR centre is involved), within 1′–10′.</li>
-            <li><strong>SZ &amp; X-ray</strong> detections at the same position trace the same gas and are always grouped; if their redshifts disagree the cluster is flagged <em>z conflict</em>.</li>
-            <li><strong>Optical/IR</strong> systems must also agree in redshift (|Δz| ≤ 0.1(1+z), 0.03 if both spectroscopic), so projections stay separate. At most one entry per catalog per cluster.</li>
-            <li><strong>Adopted values</strong>: z prefers spectroscopic, then curated SZ follow-up; M500 prefers SPT, then ACT, X-ray, Planck. Each adopted value names its source.</li>
-          </ul>
-        </details>
-        <details class="about">
-          <summary>Mass caveats</summary>
-          <ul class="about-list">
-            <li>M500c values are shown exactly as published; they are <strong>not</strong> rescaled to a common calibration.</li>
-            <li>Typical offsets in this catalog: ACT DR6 ≈ 5% below SPT (≈10% at z &gt; 1); Planck PSZ2 and MCXC (hydrostatic scale) ≈ 20% below SPT/ACT.</li>
-            <li>Weak-lensing masses come from LC2 (Sereno 2015) and the paper tables of MC2 (Finner, Jee et al.), SPT/HST (Schrabback+18/21, Zohren+22, Kim+19), Jee+11, CLASH, LoCuSS, CCCP+MENeaCS and HSC-XXL. They are their own mass family and are never adopted over SZ/X-ray masses.</li>
-            <li>Headline WL mass: the MC2 analysis if available, otherwise the paper's preferred value from the most recent paper; every other measurement is listed with its bibcode. M500c converted from M200c (NFW) where a paper gives only M200c. The SPT/HST masses are maximum-likelihood values without the papers' mass-bias correction.</li>
-            <li>R500 and θ500 are derived from the adopted M500 and z with Planck18 and are indicative only.</li>
-          </ul>
-        </details>
-        <details class="about">
-          <summary>Citing</summary>
-          <p class="hint">Please cite the original catalogs for any values you use; each catalog name links to its paper. The build pipeline is public: <a id="pipelineLink" href="https://github.com/kfinner/cluster-dashboard" target="_blank" rel="noopener">cluster-dashboard</a>.</p>
-        </details>
-        <details class="about">
-          <summary>Input catalogs</summary>
-          <div id="catalogRefs" class="catalog-ref-list"></div>
-        </details>
-      </section>
+      <p id="buildInfo" class="hint sidebar-foot"></p>
+      <p class="hint sidebar-foot">Methods, caveats and references: <a href="./methods.html">Methods &amp; sources</a>.</p>
     </aside>
 
     <main class="content">
-      <section class="card view-bar" aria-label="Plot options">
+      <section class="card view-bar" aria-label="View options">
         <div class="quick-row">
           <span class="quick-label">Quick filters</span>
           <div id="quickFilters" class="quick-filters" role="group" aria-label="Quick filters"></div>
         </div>
+        <div id="activeRow" class="active-row" hidden>
+          <span class="quick-label">Active</span>
+          <div id="activeFilters" class="active-filters" aria-label="Active filters"></div>
+          <button id="clearAllBtn" type="button" class="link-button">Clear all</button>
+        </div>
         <div id="statTiles" class="stat-row"></div>
         <div class="view-controls">
+          <label class="inline-label">
+            <span>Mass from</span>
+            <select id="massSourceSelect">
+              <option value="best">Adopted (best available)</option>
+              <option value="spt">SPT surveys</option>
+              <option value="act">ACT</option>
+              <option value="xray">X-ray (eRASS1 / MCXC)</option>
+              <option value="planck">Planck PSZ2</option>
+              <option value="wl">Weak lensing (literature)</option>
+            </select>
+          </label>
           <label class="inline-label">
             <span>Colour by</span>
             <select id="colorBySelect">
@@ -227,10 +215,14 @@
             </select>
           </label>
           <div id="legend" class="legend" aria-label="Legend"></div>
+          <div class="view-actions">
+            <button id="copyLinkBtn" type="button" class="ghost-button small-button" title="Copy a link to this view (filters, colouring and selected cluster)">Copy link</button>
+            <button id="togglePlotsBtn" type="button" class="ghost-button small-button" aria-expanded="true" aria-controls="plots">Hide plots</button>
+          </div>
         </div>
       </section>
 
-      <section class="plots">
+      <section id="plots" class="plots">
         <article class="plot-card card">
           <div class="card-head">
             <h3>Sky distribution</h3>
@@ -255,12 +247,16 @@
               <p id="tableSummary" class="hint">Showing 0 rows.</p>
             </div>
             <div class="table-actions">
+              <details id="columnsMenu" class="menu">
+                <summary class="ghost-button small-button">Columns</summary>
+                <div id="columnsList" class="menu-body"></div>
+              </details>
               <label class="inline-label">
                 <span>Rows</span>
                 <input id="displayLimitInput" type="number" min="50" max="20000" step="50" value="1000">
               </label>
-              <button id="downloadCsvBtn" class="ghost-button" type="button" title="All fields of the filtered clusters">CSV</button>
-              <button id="downloadTargetsBtn" class="ghost-button" type="button" title="Name, sexagesimal coordinates, z, M500 for observing tools">Target list</button>
+              <button id="downloadCsvBtn" class="ghost-button small-button" type="button" title="All fields of the filtered clusters">CSV</button>
+              <button id="downloadTargetsBtn" class="ghost-button small-button" type="button" title="Name, sexagesimal coordinates, z, M500 for observing tools">Target list</button>
             </div>
           </div>
           <div class="table-wrap">
@@ -269,7 +265,7 @@
               <tbody></tbody>
             </table>
           </div>
-          <p class="hint">Click a column header to sort; click a row to see every catalog's measurements.</p>
+          <p class="hint">Click a column header to sort; click a row to see the cluster.</p>
         </article>
 
         <article class="card details-card" aria-live="polite">
@@ -280,79 +276,87 @@
             <div id="detailFlags" class="chip-row"></div>
           </div>
 
-          <div id="detailCoords" class="coord-block"></div>
-          <div id="detailFacts" class="summary-grid"></div>
-
-          <section class="details-section">
-            <h4>M<sub>500c</sub> by survey family</h4>
-            <div class="fields-wrap">
-              <table id="massTable" class="compact-table"><tbody></tbody></table>
-            </div>
-          </section>
-
-          <div id="externalLinks" class="link-row"></div>
-
-          <div class="viewer-toolbar">
-            <div class="seg" role="group" aria-label="Image viewer">
-              <button id="viewStaticBtn" class="seg-btn" type="button" aria-pressed="true">Image</button>
-              <button id="viewAladinBtn" class="seg-btn" type="button" aria-pressed="false">Interactive (Aladin)</button>
-            </div>
-            <label id="staticLayerLabel" class="inline-label">
-              <span>Layer</span>
-              <select id="staticLayerSelect">
-                <option value="ls-dr11">DESI Legacy DR11 (g r i z)</option>
-                <option value="ls-dr10">DESI Legacy DR10 (g r i z)</option>
-                <option value="vlass1.2">VLASS 1.2 (3 GHz)</option>
-              </select>
-            </label>
-            <label id="surveyLabel" class="inline-label" hidden>
-              <span>Survey</span>
-              <select id="surveySelect"></select>
-            </label>
-            <button id="panelsBtn" class="ghost-button" type="button" aria-expanded="false" aria-controls="panelsWrap">Multiwavelength panels</button>
+          <div id="detailTabs" class="tabs" role="tablist" aria-label="Cluster details">
+            <button type="button" class="tab" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+            <button type="button" class="tab" role="tab" data-tab="images" aria-selected="false">Images</button>
+            <button type="button" class="tab" role="tab" data-tab="measurements" aria-selected="false">Measurements</button>
+            <button type="button" class="tab" role="tab" data-tab="fields" aria-selected="false">All fields</button>
           </div>
-          <div id="staticView" class="static-view"></div>
-          <div id="aladinContainer" class="aladin-shell" hidden></div>
-          <div id="aladinLegend" class="legend legend--small"></div>
 
-          <section id="panelsWrap" class="mw-panels" hidden>
-            <div class="mw-head">
-              <h4>Multiwavelength view</h4>
-              <label class="inline-label">
-                <span>Field</span>
-                <select id="panelFovSelect">
-                  <option value="auto">Auto (≈5 θ500)</option>
-                  <option value="5">5′</option>
-                  <option value="10">10′</option>
-                  <option value="20">20′</option>
-                  <option value="40">40′</option>
+          <div class="tab-panel" data-panel="overview" role="tabpanel">
+            <div id="detailCoords" class="coord-block"></div>
+            <div id="detailFacts" class="summary-grid"></div>
+            <section class="details-section">
+              <h4>M<sub>500c</sub> by survey family</h4>
+              <div class="fields-wrap">
+                <table id="massTable" class="compact-table"><tbody></tbody></table>
+              </div>
+            </section>
+            <div id="externalLinks" class="link-row"></div>
+          </div>
+
+          <div class="tab-panel" data-panel="images" role="tabpanel" hidden>
+            <div class="viewer-toolbar">
+              <div class="seg" role="group" aria-label="Image viewer">
+                <button id="viewStaticBtn" class="seg-btn" type="button" aria-pressed="true">Image</button>
+                <button id="viewAladinBtn" class="seg-btn" type="button" aria-pressed="false">Interactive (Aladin)</button>
+              </div>
+              <label id="staticLayerLabel" class="inline-label">
+                <span>Layer</span>
+                <select id="staticLayerSelect">
+                  <option value="ls-dr11">DESI Legacy DR11 (g r i z)</option>
+                  <option value="ls-dr10">DESI Legacy DR10 (g r i z)</option>
+                  <option value="vlass1.2">VLASS 1.2 (3 GHz)</option>
                 </select>
               </label>
+              <label id="surveyLabel" class="inline-label" hidden>
+                <span>Survey</span>
+                <select id="surveySelect"></select>
+              </label>
+              <button id="panelsBtn" class="ghost-button small-button" type="button" aria-expanded="false" aria-controls="panelsWrap">Multiwavelength panels</button>
             </div>
-            <p class="hint">Surveys whose footprint should include this cluster (approximate). Tiles load from each survey's own server; a blank panel means no data there. Circle = θ500, cross = adopted position. Click a title to open it in the main viewer.</p>
-            <div id="panelsGrid" class="mw-grid"></div>
-          </section>
+            <div id="staticView" class="static-view"></div>
+            <div id="aladinContainer" class="aladin-shell" hidden></div>
+            <div id="aladinLegend" class="legend legend--small"></div>
 
-          <section class="details-section">
-            <h4>Measurements by catalog</h4>
+            <section id="panelsWrap" class="mw-panels" hidden>
+              <div class="mw-head">
+                <h4>Multiwavelength view</h4>
+                <label class="inline-label">
+                  <span>Field</span>
+                  <select id="panelFovSelect">
+                    <option value="auto">Auto (≈5 θ500)</option>
+                    <option value="5">5′</option>
+                    <option value="10">10′</option>
+                    <option value="20">20′</option>
+                    <option value="40">40′</option>
+                  </select>
+                </label>
+              </div>
+              <p class="hint">Surveys whose footprint should include this cluster (approximate). Tiles load from each survey's own server; a blank panel means no data there. Circle = θ500, cross = adopted position. Click a title to open it in the main viewer.</p>
+              <div id="panelsGrid" class="mw-grid"></div>
+            </section>
+          </div>
+
+          <div class="tab-panel" data-panel="measurements" role="tabpanel" hidden>
             <div class="fields-wrap">
               <table id="membersTable" class="members-table">
                 <thead></thead>
                 <tbody></tbody>
               </table>
             </div>
-            <p class="hint">Bold = adopted as the cluster's z or M500. Offsets are from the adopted position. Faded rows are superseded catalog versions.</p>
-          </section>
+            <p class="hint">Bold = adopted as the cluster's z or M500. Offsets are from the adopted position. Faded rows are superseded catalog versions. Each catalog name links to its paper.</p>
+          </div>
 
-          <details class="details-section">
-            <summary>All fields</summary>
+          <div class="tab-panel" data-panel="fields" role="tabpanel" hidden>
             <div class="fields-wrap">
               <table id="fieldsTable" class="fields-table"><tbody></tbody></table>
             </div>
-          </details>
+          </div>
         </article>
       </section>
     </main>
   </div>
+  <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
 </body>
 </html>
