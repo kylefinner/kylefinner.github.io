@@ -14,9 +14,13 @@
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@400;500;600&display=swap"
     rel="stylesheet"
   >
-  <link rel="stylesheet" href="./styles.css?v=202611141516">
+  <script>
+    // apply a saved theme before the first paint (no flash); "auto" follows the system setting
+    try { var t = localStorage.getItem("ce-theme"); if (t === "dark" || t === "light") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="./styles.css?v=202611151305">
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
-  <script src="./app.js?v=202611141516" defer></script>
+  <script src="./app.js?v=202611151305" defer></script>
 </head>
 <body>
   <div class="page-shell">
@@ -25,6 +29,8 @@
         <p class="eyebrow"><a href="../" class="home-link">Kyle Finner</a> · Galaxy cluster master catalog</p>
         <h1>Cluster Explorer</h1>
         <p id="statusText" class="lede">Loading cluster data...</p>
+        <p id="loadNotice" class="hint" aria-live="polite"></p>
+        <button id="themeToggle" class="theme-toggle" type="button" title="Cycle theme: auto (system) / dark / light">Theme: auto</button>
       </div>
 
       <form id="filterForm" autocomplete="off">
@@ -75,6 +81,7 @@
               <option value="act">ACT</option>
               <option value="xray">X-ray (eRASS1 / MCXC)</option>
               <option value="planck">Planck PSZ2</option>
+              <option value="wl">Weak lensing (literature)</option>
             </select>
           </label>
           <div class="two-up">
@@ -99,7 +106,7 @@
           <div class="two-up">
             <label>
               <span>Min. independent surveys</span>
-              <input id="nSurveysInput" type="number" min="1" step="1" value="1">
+              <input id="nSurveysInput" type="number" min="0" step="1" value="0">
             </label>
             <label>
               <span>Dynamical state</span>
@@ -187,6 +194,8 @@
           <ul class="about-list">
             <li>M500c values are shown exactly as published; they are <strong>not</strong> rescaled to a common calibration.</li>
             <li>Typical offsets in this catalog: ACT DR6 ≈ 5% below SPT (≈10% at z &gt; 1); Planck PSZ2 and MCXC (hydrostatic scale) ≈ 20% below SPT/ACT.</li>
+            <li>Weak-lensing masses come from LC2 (Sereno 2015) and the paper tables of MC2 (Finner, Jee et al.), SPT/HST (Schrabback+18/21, Zohren+22, Kim+19), Jee+11, CLASH, LoCuSS, CCCP+MENeaCS and HSC-XXL. They are their own mass family and are never adopted over SZ/X-ray masses.</li>
+            <li>Headline WL mass: the MC2 analysis if available, otherwise the paper's preferred value from the most recent paper; every other measurement is listed with its bibcode. M500c converted from M200c (NFW) where a paper gives only M200c. The SPT/HST masses are maximum-likelihood values without the papers' mass-bias correction.</li>
             <li>R500 and θ500 are derived from the adopted M500 and z with Planck18 and are indicative only.</li>
           </ul>
         </details>

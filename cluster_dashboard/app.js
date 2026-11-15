@@ -4,28 +4,53 @@
    Data: data/clusters.json.gz (one row per cluster), data/members/ra_HH.json.gz
    (every catalog's entry, loaded on demand), data/catalogs.json (references). */
 
-const DATA_URL = "./data/clusters.json.gz";
+const CORE_URL = "./data/clusters_core.json.gz";   // SZ / X-ray / radio / lensing / classic names (~2.4 MB)
+const MORE_URL = "./data/clusters_more.json.gz";   // optical/IR-only systems (~6.4 MB), loaded afterwards
+const DERIVED_COLUMNS = ["l", "b", "families", "det_class", "survey_groups"];
+const FAMILY_ORDER_ALL = ["SZ", "X-ray", "radio", "lensing", "optical", "IR"];
 const META_URL = "./data/catalogs.json";
 const DEFAULT_DISPLAY_LIMIT = 1000;
 
 // Chart tokens. Categorical slots validated (dataviz validator, --pairs all, light
 // surface #ffffff): blue / orange / aqua. Neutral grays carry "other" and context.
-const INK = "#1d2129";
-const INK_2 = "#4b515c";
-const MUTED = "#7a808b";
-const HAIR = "#eceef2";
-const AXIS = "#cdd1d8";
-const SURFACE = "#ffffff";
-const SLOT = { blue: "#2a78d6", orange: "#eb6834", aqua: "#1baf7a" };
-const OTHER = "#8a8f98";
-const CONTEXT = "#d5d9e0";
+// Values are re-read from the CSS tokens (styles.css) whenever the theme changes.
+let INK = "#1d2129";
+let INK_2 = "#4b515c";
+let MUTED = "#7a808b";
+let HAIR = "#eceef2";
+let AXIS = "#cdd1d8";
+let SURFACE = "#ffffff";
+let GALACTIC = "#a7adb7";
+let ANNOT_BG = "rgba(255,255,255,0.8)";
+const SLOT = { blue: "#2a78d6", orange: "#eb6834", aqua: "#1baf7a", violet: "#6250d6", green: "#008300" };
+let OTHER = "#8a8f98";
+let CONTEXT = "#d5d9e0";
+
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = (name, fallback) => cs.getPropertyValue(name).trim() || fallback;
+  INK = v("--c-ink", INK);
+  INK_2 = v("--c-ink2", INK_2);
+  MUTED = v("--c-muted", MUTED);
+  HAIR = v("--c-hair", HAIR);
+  AXIS = v("--c-axis", AXIS);
+  SURFACE = v("--c-surface", SURFACE);
+  GALACTIC = v("--c-galactic", GALACTIC);
+  OTHER = v("--c-other", OTHER);
+  CONTEXT = v("--c-context", CONTEXT);
+  ["blue", "orange", "aqua", "violet", "green"].forEach((k) => { SLOT[k] = v(`--c-${k}`, SLOT[k]); });
+  const hex = SURFACE.replace("#", "");
+  const rgb = hex.length === 6 ? [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)) : [255, 255, 255];
+  ANNOT_BG = `rgba(${rgb.join(",")},0.8)`;
+}
 
 const FAMILY_STYLE = {
-  SZ: { color: SLOT.blue, shape: "circle", label: "SZ" },
-  "X-ray": { color: SLOT.aqua, shape: "square", label: "X-ray" },
-  optical: { color: SLOT.orange, shape: "rhomb", label: "Optical" },
-  IR: { color: SLOT.orange, shape: "triangle", label: "IR" },
-  radio: { color: "#6250d6", shape: "circle", label: "Diffuse radio" }
+  SZ: { get color() { return SLOT.blue; }, shape: "circle", label: "SZ" },
+  "X-ray": { get color() { return SLOT.aqua; }, shape: "square", label: "X-ray" },
+  optical: { get color() { return SLOT.orange; }, shape: "rhomb", label: "Optical" },
+  IR: { get color() { return SLOT.orange; }, shape: "triangle", label: "IR" },
+  radio: { get color() { return SLOT.violet; }, shape: "circle", label: "Diffuse radio" },
+  lensing: { get color() { return SLOT.green; }, shape: "circle", label: "Weak lensing" }
 };
 const RADIO_KINDS = [["halo", "Halo", "H"], ["relic", "Relic", "R"], ["minihalo", "Mini-halo", "MH"], ["phoenix", "Phoenix", "Ph"]];
 
@@ -42,29 +67,30 @@ function radioClass(row) {
 const COLOR_MODES = {
   detection: {
     groups: [
-      { key: "SZ", label: "SZ-detected", color: SLOT.blue },
-      { key: "X-ray", label: "X-ray (no SZ)", color: SLOT.aqua },
-      { key: "Optical/IR", label: "Optical / IR only", color: SLOT.orange }
+      { key: "SZ", label: "SZ-detected", get color() { return SLOT.blue; } },
+      { key: "X-ray", label: "X-ray (no SZ)", get color() { return SLOT.aqua; } },
+      { key: "Optical/IR", label: "Optical / IR only", get color() { return SLOT.orange; } }
     ],
     of: (row) => row.det_class || "Optical/IR"
   },
   mass: {
     groups: [
-      { key: "SPT", label: "SPT mass", color: SLOT.blue },
-      { key: "ACT", label: "ACT mass", color: SLOT.orange },
-      { key: "X-ray", label: "X-ray mass", color: SLOT.aqua },
-      { key: "Other", label: "Planck / other", color: OTHER },
-      { key: "none", label: "No M500", color: CONTEXT }
+      { key: "SPT", label: "SPT mass", get color() { return SLOT.blue; } },
+      { key: "ACT", label: "ACT mass", get color() { return SLOT.orange; } },
+      { key: "X-ray", label: "X-ray mass", get color() { return SLOT.aqua; } },
+      { key: "Other", label: "Planck / other", get color() { return OTHER; } },
+      { key: "WL", label: "Weak-lensing mass", get color() { return SLOT.blue; } },
+      { key: "none", label: "No M500", get color() { return CONTEXT; } }
     ],
     of: (row) => row._mgroup || "none"
   },
   radio: {
     groups: [
-      { key: "both", label: "Halo + relic", color: SLOT.aqua },
-      { key: "halo", label: "Radio halo", color: SLOT.blue },
-      { key: "relic", label: "Radio relic", color: SLOT.orange },
-      { key: "other", label: "Mini-halo / phoenix", color: OTHER },
-      { key: "none", label: "None reported", color: CONTEXT }
+      { key: "both", label: "Halo + relic", get color() { return SLOT.aqua; } },
+      { key: "halo", label: "Radio halo", get color() { return SLOT.blue; } },
+      { key: "relic", label: "Radio relic", get color() { return SLOT.orange; } },
+      { key: "other", label: "Mini-halo / phoenix", get color() { return OTHER; } },
+      { key: "none", label: "None reported", get color() { return CONTEXT; } }
     ],
     of: radioClass
   }
@@ -75,7 +101,8 @@ const MASS_SOURCES = {
   spt: { col: "m500_spt", err: "m500_spt_err", src: "m500_spt_src", label: "SPT", group: "SPT" },
   act: { col: "m500_act", err: "m500_act_err", src: "m500_act_src", label: "ACT", group: "ACT" },
   xray: { col: "m500_xray", err: "m500_xray_err", src: "m500_xray_src", label: "X-ray", group: "X-ray" },
-  planck: { col: "m500_planck", err: "m500_planck_err", src: null, fixedSrc: "psz2", label: "Planck", group: "Other" }
+  planck: { col: "m500_planck", err: "m500_planck_err", src: null, fixedSrc: "psz2", label: "Planck", group: "Other" },
+  wl: { col: "m500_wl", err: "m500_wl_err", src: "m500_wl_src", label: "Weak lensing", group: "WL" }
 };
 
 // HiPS image surveys, loaded by URL straight from each provider (no ID resolution). Each has
@@ -169,7 +196,9 @@ const FOOTPRINTS = {
   ps1: { label: "Pan-STARRS", test: (r) => r.dec > -30 },
   erosita: { label: "eROSITA-DE DR1", test: (r) => r.l >= 180 }
 };
+// classification / measurement catalogs: not detections, so not offered in the survey filter
 const RADIO_GROUPS = new Set(["LoTSS-DR2 (radio)", "MeerKAT MGCLS (radio)", "MC2 (radio relics)"]);
+const isPropertyGroup = (g) => RADIO_GROUPS.has(g) || g.startsWith("Weak lensing");
 
 // One-click filters above the plots; each toggles the matching sidebar control and applies at once.
 const box = (root, value) => root.querySelector(`input[value="${value}"]`);
@@ -268,6 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   els.surveySelect.innerHTML = HIPS_SURVEYS
     .map((h) => `<option value="${h.key}">${esc(h.title)} (${esc(h.band)})</option>`).join("");
+  initTheme();
   if (window.matchMedia("(max-width: 1000px)").matches) {
     document.getElementById("moreFilters").open = false; // phones: search first, other filters on demand
   }
@@ -282,16 +312,19 @@ document.addEventListener("DOMContentLoaded", () => {
 /* ------------------------------------------------------------------ loading */
 
 async function load() {
-  const [payload, meta] = await Promise.all([
-    fetchJsonGzip(DATA_URL),
-    fetch(META_URL, { cache: "no-store" }).then((r) => (r.ok ? r.json() : { catalogs: [] })).catch(() => ({ catalogs: [] }))
-  ]);
+  // small metadata first: its build date versions the big files so browsers can cache them
+  const meta = await fetch(META_URL, { cache: "no-store" }).then((r) => (r.ok ? r.json() : { catalogs: [] }))
+    .catch(() => ({ catalogs: [] }));
   state.meta = meta;
+  state.dataVersion = encodeURIComponent(meta.generated || "");
   (meta.catalogs || []).forEach((c) => { state.catalogInfo[c.key] = c; });
+  setStatus("Loading clusters…");
+  const payload = await fetchJsonGzip(`${CORE_URL}?v=${state.dataVersion}`, true);
   state.generatedAt = payload.generated_at;
-  state.rows = (payload.rows || []).map(prepareRow);
+  state.totalRows = payload.total_rows || null;
+  state.rows = expandRows(payload).map(prepareRow);
   state.rows.forEach((row) => state.byId.set(row.id, row));
-  state.columns = payload.columns || Object.keys(state.rows[0] || {});
+  state.columns = [...(payload.columns || []), ...DERIVED_COLUMNS.filter((c) => !(payload.columns || []).includes(c))];
 
   renderCatalogChecklist(payload.catalogs || []);
   renderSurveyFilters();
@@ -324,15 +357,105 @@ async function load() {
     els.panelsBtn.textContent = "Hide panels";
   }
   applyFilters();
+  const wanted = decodeURIComponent(location.hash.replace(/^#/, ""));
   if (fromHash) {
     selectCluster(fromHash.id, { updateHash: false });
   } else if (state.filtered.length) {
     selectCluster(state.filtered[0].id, { updateHash: false });
   }
+  // the rest of the catalog: automatically on desktop, on request on phones / data-saver connections
+  const saveData = navigator.connection && navigator.connection.saveData;
+  const small = window.matchMedia("(max-width: 700px)").matches;
+  if ((wanted && !fromHash) || !(saveData || small)) {
+    loadMore(wanted && !fromHash ? wanted : null);
+  } else {
+    renderLoadNotice();
+  }
 }
 
-async function fetchJsonGzip(url) {
-  const response = await fetch(url, { cache: "no-store" });
+function expandRows(payload) {
+  const cols = payload.columns || [];
+  return (payload.data || []).map((arr) => {
+    const row = {};
+    for (let i = 0; i < cols.length; i += 1) {
+      if (arr[i] !== null && arr[i] !== undefined) row[cols[i]] = arr[i];
+    }
+    return row;
+  });
+}
+
+async function loadMore(selectName = null) {
+  if (state.moreLoading || state.moreLoaded) return;
+  state.moreLoading = true;
+  renderLoadNotice();
+  try {
+    const payload = await fetchJsonGzip(`${MORE_URL}?v=${state.dataVersion}`, true);
+    const more = expandRows(payload).map(prepareRow);
+    more.forEach((row) => { state.rows.push(row); state.byId.set(row.id, row); });
+    (payload.columns || []).forEach((c) => { if (!state.columns.includes(c)) state.columns.push(c); });
+    state.moreLoaded = true;
+    setMassSource(state.massSource);
+    renderSurveyFilters();
+    applyFilters();
+    const hit = selectName ? findByName(selectName) : null;
+    if (hit) selectCluster(hit.id, { updateHash: false });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    state.moreLoading = false;
+    renderLoadNotice();
+  }
+}
+
+const THEMES = ["auto", "dark", "light"];
+
+function storedTheme() {
+  try { return localStorage.getItem("ce-theme") || "auto"; } catch (error) { return "auto"; }
+}
+
+function initTheme() {
+  const btn = document.getElementById("themeToggle");
+  const apply = (mode) => {
+    if (mode === "auto") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = mode;
+    if (btn) btn.textContent = `Theme: ${mode}`;
+    readTheme();
+    SKY_FRAME = null; // grid / Galactic-plane traces carry theme colours
+    if (state.rows.length) {
+      renderAll();
+      const row = state.byId.get(state.selectedId);
+      if (row) renderDetails(row);
+    }
+  };
+  const fromUrl = new URLSearchParams(location.search).get("theme");
+  apply(THEMES.includes(fromUrl) ? fromUrl : storedTheme()); // ?theme=dark shares a view without saving a preference
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const next = THEMES[(THEMES.indexOf(storedTheme()) + 1) % THEMES.length];
+      try { localStorage.setItem("ce-theme", next); } catch (error) { /* private mode: not remembered */ }
+      apply(next);
+    });
+  }
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (storedTheme() === "auto") apply("auto");
+  });
+}
+
+function renderLoadNotice() {
+  const el = document.getElementById("loadNotice");
+  if (!el) return;
+  if (state.moreLoaded) {
+    el.innerHTML = "";
+  } else if (state.moreLoading) {
+    el.innerHTML = `<span class="muted">Loading ~190k optical/IR-only clusters in the background…</span>`;
+  } else {
+    el.innerHTML = `Showing clusters with SZ, X-ray, radio or lensing data and classic names. <button id="loadMoreBtn" type="button" class="link-button">Load the 189k optical/IR-only clusters (6 MB)</button>`;
+    document.getElementById("loadMoreBtn").addEventListener("click", () => loadMore());
+  }
+}
+
+async function fetchJsonGzip(url, cacheable = false) {
+  const response = await fetch(url, cacheable ? {} : { cache: "no-store" });
   if (!response.ok || !response.body) {
     throw new Error(`HTTP ${response.status} for ${url}`);
   }
@@ -341,6 +464,13 @@ async function fetchJsonGzip(url) {
 }
 
 function prepareRow(row) {
+  // fields derived here instead of being shipped: families, detection class, survey groups, Galactic l/b
+  const cats = String(row.catalogs || "").split(",").filter(Boolean);
+  const fams = new Set(cats.map((k) => state.catalogInfo[k]?.family).filter(Boolean));
+  row.families = FAMILY_ORDER_ALL.filter((f) => fams.has(f)).join("+");
+  row.det_class = fams.has("SZ") ? "SZ" : (fams.has("X-ray") ? "X-ray" : "Optical/IR");
+  row.survey_groups = [...new Set(cats.map((k) => state.catalogInfo[k]?.group).filter(Boolean))].join(",");
+  [row.l, row.b] = equatorialToGalactic(row.ra, row.dec);
   row.ra_w = row.ra > 180 ? row.ra - 360 : row.ra;
   const [x, y] = mollweide(row.ra_w, row.dec);
   row._x = x;
@@ -507,7 +637,7 @@ function getFilters() {
     mMax: num(els.massMaxInput.value),
     mustMass: els.mustMassInput.checked,
     families,
-    nSurveys: num(els.nSurveysInput.value) || 1,
+    nSurveys: num(els.nSurveysInput.value) || 0,
     dyn: els.dynSelect.value,
     hideConflict: els.hideConflictInput.checked,
     hidePair: els.hidePairInput.checked,
@@ -574,6 +704,7 @@ function passes(row, f) {
 }
 
 function renderSurveyFilters() {
+  const previous = Object.fromEntries([...els.surveyFilters.querySelectorAll("select")].map((x) => [x.dataset.group, x.value]));
   const counts = new Map();
   for (const row of state.rows) {
     for (const g of row._groups) counts.set(g, (counts.get(g) || 0) + 1);
@@ -581,7 +712,7 @@ function renderSurveyFilters() {
   const order = { SZ: 0, "X-ray": 1, optical: 2, IR: 3, radio: 4 };
   const famOf = {};
   (state.meta.catalogs || []).forEach((c) => { if (c.group && !(c.group in famOf)) famOf[c.group] = c.family; });
-  const groups = [...counts.keys()].filter((g) => !RADIO_GROUPS.has(g))
+  const groups = [...counts.keys()].filter((g) => !isPropertyGroup(g))
     .sort((a, b) => (order[famOf[a]] ?? 9) - (order[famOf[b]] ?? 9) || counts.get(b) - counts.get(a));
   els.surveyFilters.innerHTML = groups.map((g) => `
     <label class="survey-row">
@@ -593,6 +724,7 @@ function renderSurveyFilters() {
         <option value="no">Not detected</option>
       </select>
     </label>`).join("");
+  els.surveyFilters.querySelectorAll("select").forEach((x) => { if (previous[x.dataset.group]) x.value = previous[x.dataset.group]; });
 }
 
 function matchesName(row, query) {
@@ -608,7 +740,7 @@ function matchesName(row, query) {
 function resetFilters() {
   els.filterForm.reset();
   els.radiusInput.value = "10";
-  els.nSurveysInput.value = "1";
+  els.nSurveysInput.value = "0";
   els.posFeedback.textContent = "";
   setMassSource("best");
   applyFilters();
@@ -651,7 +783,8 @@ function statusText() {
   const parts = [];
   if (f.query) parts.push(`name “${f.query}”`);
   if (f.pos) parts.push(`within ${f.pos.radius}′ of ${f.pos.ra.toFixed(3)}°, ${f.pos.dec.toFixed(3)}°`);
-  return `${fmtInt(n)} of ${fmtInt(state.rows.length)} clusters${parts.length ? " · " + parts.join(" · ") : ""}`;
+  const partial = !state.moreLoaded && state.totalRows ? ` (of ${fmtInt(state.totalRows)} once all are loaded)` : "";
+  return `${fmtInt(n)} of ${fmtInt(state.rows.length)} clusters${partial}${parts.length ? " · " + parts.join(" · ") : ""}`;
 }
 
 function renderStats() {
@@ -700,7 +833,7 @@ function plotFont() {
 }
 
 function hoverLabel() {
-  return { bgcolor: "#ffffff", bordercolor: AXIS, font: { family: "Poppins, system-ui, sans-serif", size: 12, color: INK } };
+  return { bgcolor: SURFACE, bordercolor: AXIS, font: { family: "Poppins, system-ui, sans-serif", size: 12, color: INK } };
 }
 
 function sample(rows, max) {
@@ -797,7 +930,7 @@ function skyFrameTraces() {
   SKY_FRAME = [
     { type: "scatter", mode: "lines", x: grid.x, y: grid.y, line: { color: HAIR, width: 1 }, hoverinfo: "skip", showlegend: false },
     { type: "scatter", mode: "lines", x: edge.x, y: edge.y, line: { color: AXIS, width: 1 }, hoverinfo: "skip", showlegend: false },
-    { type: "scatter", mode: "lines", x: gp.x, y: gp.y, line: { color: "#a7adb7", width: 1.5 }, hoverinfo: "skip", showlegend: false }
+    { type: "scatter", mode: "lines", x: gp.x, y: gp.y, line: { color: GALACTIC, width: 1.5 }, hoverinfo: "skip", showlegend: false }
   ];
   return SKY_FRAME;
 }
@@ -808,14 +941,14 @@ function skyLabels() {
     const w = ra > 180 ? ra - 360 : ra;
     if (Math.abs(w) === 180) continue;
     const [x, y] = mollweide(w, 0);
-    notes.push({ x, y, text: `${ra / 15}h`, showarrow: false, yshift: -9, font: { size: 10, color: INK_2 }, bgcolor: "rgba(255,255,255,0.8)" });
+    notes.push({ x, y, text: `${ra / 15}h`, showarrow: false, yshift: -9, font: { size: 10, color: INK_2 }, bgcolor: ANNOT_BG });
   }
   for (const dec of [-60, -30, 30, 60]) {
     const [x, y] = mollweide(179.999, dec);
     notes.push({ x, y, text: `${dec > 0 ? "+" : ""}${dec}°`, showarrow: false, xanchor: "right", xshift: -4, font: { size: 10, color: MUTED } });
   }
   const [gx, gy] = mollweide(...wrapRaDec(galacticToEquatorial(60, 0)));
-  notes.push({ x: gx, y: gy, text: "Galactic plane", showarrow: false, xanchor: "left", xshift: 6, font: { size: 10, color: INK_2 }, bgcolor: "rgba(255,255,255,0.8)" });
+  notes.push({ x: gx, y: gy, text: "Galactic plane", showarrow: false, xanchor: "left", xshift: 6, font: { size: 10, color: INK_2 }, bgcolor: ANNOT_BG });
   return notes;
 }
 
@@ -1019,7 +1152,7 @@ function renderDetails(row) {
     ["Richness", Number.isFinite(row.richness) ? fix(row.richness, 1) : "–", row.richness_src ? catLabel(row.richness_src) : ""],
     ["Dynamical state", row.dyn_state ? `${esc(row.dyn_state)}` : "–", Number.isFinite(row.dyn_delta) ? `δ = ${fix(row.dyn_delta, 2)} (Yuan & Han)` : ""],
     ["Catalogs", `${row.n_catalogs ?? "–"} entries`, `${row.n_surveys ?? "–"} independent surveys`],
-    ["Detected in", famBadges(row, true) || "–", [...row._groups].filter((g) => !RADIO_GROUPS.has(g)).join(", ")],
+    ["Detected in", famBadges(row, true) || "–", [...row._groups].filter((g) => !isPropertyGroup(g)).join(", ")],
     ["Inside footprint of", Object.values(FOOTPRINTS).filter((fp) => fp.test(row)).map((fp) => esc(fp.label)).join(" · ") || "–",
       "Euclid flags from the reference-survey footprint; others approximate"],
     ["Diffuse radio", radioDetail(row), row.radio_catalogs ? "each classification links to its paper; see also the table below" : "not covered by the radio compilations"]
@@ -1035,14 +1168,21 @@ function renderDetails(row) {
     ["SPT", row.m500_spt, row.m500_spt_err, row.m500_spt_src],
     ["ACT", row.m500_act, row.m500_act_err, row.m500_act_src],
     ["X-ray", row.m500_xray, row.m500_xray_err, row.m500_xray_src],
-    ["Planck", row.m500_planck, row.m500_planck_err, Number.isFinite(row.m500_planck) ? "psz2" : null]
+    ["Planck", row.m500_planck, row.m500_planck_err, Number.isFinite(row.m500_planck) ? "psz2" : null],
+    ["Weak lensing", row.m500_wl, row.m500_wl_err, row.m500_wl_src]
   ];
+  const wlPaper = row.m500_wl_ref
+    ? ` · <a href="https://ui.adsabs.harvard.edu/abs/${encodeURIComponent(row.m500_wl_ref)}" target="_blank" rel="noopener" title="Original weak-lensing analysis">${esc(row.m500_wl_ref)}</a>${row.n_wl > 1 ? ` (preferred of ${row.n_wl}; all listed in the table below)` : ""}`
+    : "";
   els.massTable.querySelector("tbody").innerHTML = massRows.map(([fam, m, e, src]) => `
     <tr><td>${fam}</td>
       <td class="num">${Number.isFinite(m) ? `${fix(m, 2)}${Number.isFinite(e) ? ` ± ${fix(e, 2)}` : ""}` : "–"}</td>
-      <td class="muted">${src ? esc(catLabel(src)) : ""}</td></tr>`).join("");
+      <td class="muted">${src ? esc(catLabel(src)) : ""}${fam === "Weak lensing" ? wlPaper : ""}</td></tr>`).join("");
 
-  els.externalLinks.innerHTML = externalLinks(row).map(([label, url]) =>
+  const mc2 = row.mc2_key
+    ? `<a class="link-chip link-chip--own" href="../mc2_viewer.html?cluster=${encodeURIComponent(row.mc2_key)}" title="Merging Cluster Collaboration colour mosaic">MC2 image archive</a>`
+    : "";
+  els.externalLinks.innerHTML = mc2 + externalLinks(row).map(([label, url]) =>
     `<a class="link-chip" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} ↗</a>`).join("");
 
   els.fieldsTable.querySelector("tbody").innerHTML = state.columns
@@ -1130,7 +1270,7 @@ async function renderStatic(row) {
   const seen = new Set();
   for (const m of members) {
     const info = state.catalogInfo[val(m, "catalog")] || {};
-    if (info.family === "radio") continue; // classification entries sit at the cluster centre
+    if (info.family === "radio" || info.family === "lensing") continue; // property entries sit at the cluster centre
     const style = FAMILY_STYLE[info.family] || FAMILY_STYLE.optical;
     const [x, y] = toXY(val(m, "ra"), val(m, "dec"));
     if (x < 0 || y < 0 || x > size || y > size) continue;
@@ -1320,7 +1460,7 @@ function addMemberOverlay(row, members, val) {
     const byFam = {};
     for (const m of members) {
       const fam = state.catalogInfo[val(m, "catalog")]?.family || "optical";
-      if (fam === "radio") continue; // classification entries sit at the cluster centre
+      if (fam === "radio" || fam === "lensing") continue; // property entries sit at the cluster centre
       (byFam[fam] = byFam[fam] || []).push(m);
     }
     const legend = [];
@@ -1342,7 +1482,7 @@ function addMemberOverlay(row, members, val) {
 async function getShard(row) {
   const shard = String(clamp(Math.floor((((row.ra % 360) + 360) % 360) / 15), 0, 23)).padStart(2, "0");
   if (!state.shards[shard]) {
-    state.shards[shard] = fetchJsonGzip(`./data/members/ra_${shard}.json.gz`).catch((error) => {
+    state.shards[shard] = fetchJsonGzip(`./data/members/ra_${shard}.json.gz?v=${state.dataVersion}`, true).catch((error) => {
       delete state.shards[shard];
       throw error;
     });
@@ -1401,7 +1541,7 @@ async function renderMembers(row) {
 /* ------------------------------------------------------------------ sidebar content */
 
 function renderCatalogChecklist(keys) {
-  const fams = ["SZ", "X-ray", "radio", "optical", "IR"];
+  const fams = ["SZ", "X-ray", "radio", "lensing", "optical", "IR"];
   const byFam = {};
   keys.forEach((k) => {
     const fam = state.catalogInfo[k]?.family || "optical";
@@ -1423,7 +1563,7 @@ function renderAbout() {
   const when = meta.generated ? new Date(meta.generated).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "";
   els.buildInfo.textContent = `${fmtInt(meta.n_members || 0)} entries from ${(meta.catalogs || []).length} catalogs, grouped into ${fmtInt(meta.n_clusters || state.rows.length)} clusters${when ? ` (built ${when})` : ""}.`;
   if (meta.pipeline_url) els.pipelineLink.href = meta.pipeline_url;
-  const order = ["SZ", "X-ray", "radio", "optical", "IR"];
+  const order = ["SZ", "X-ray", "radio", "lensing", "optical", "IR"];
   els.catalogRefs.innerHTML = [...(meta.catalogs || [])]
     .sort((a, b) => order.indexOf(a.family) - order.indexOf(b.family))
     .map((c) => `
@@ -1495,6 +1635,21 @@ function pushXY(target, [x, y]) {
 
 function wrapRaDec([ra, dec]) {
   return [ra > 180 ? ra - 360 : ra, dec];
+}
+
+function equatorialToGalactic(raDeg, decDeg) {
+  const R = [
+    [-0.0548755604162154, -0.8734370902348850, -0.4838350155487132],
+    [0.4941094278755837, -0.4448296299600112, 0.7469822444972189],
+    [-0.8676661490190047, -0.1980763734312015, 0.4559837761750669]
+  ];
+  const a = raDeg * Math.PI / 180;
+  const d = decDeg * Math.PI / 180;
+  const e = [Math.cos(d) * Math.cos(a), Math.cos(d) * Math.sin(a), Math.sin(d)];
+  const g = R.map((row) => row[0] * e[0] + row[1] * e[1] + row[2] * e[2]);
+  const l = (Math.atan2(g[1], g[0]) * 180 / Math.PI + 360) % 360;
+  const b = Math.asin(clamp(g[2], -1, 1)) * 180 / Math.PI;
+  return [Math.round(l * 1000) / 1000, Math.round(b * 1000) / 1000];
 }
 
 function galacticToEquatorial(lDeg, bDeg) {
