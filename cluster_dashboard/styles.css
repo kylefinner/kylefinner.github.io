@@ -28,6 +28,7 @@
   --accent-strong: #8a4680;        /* fills behind white text (buttons, pressed states) */
   --accent-strong-hover: #793d70;
   --selected-solid: #f4ebf3;
+  --surface-control: #f9f7fb;
   --placeholder: #a3a8b1;
   /* chart tokens (read by app.js); categorical slots validated for light and dark surfaces */
   --c-blue: #2a78d6;
@@ -66,6 +67,7 @@
   --accent-strong: #8a4680;
   --accent-strong-hover: #9b4f90;
   --selected-solid: #2b2230;
+  --surface-control: #14171e;
   --placeholder: #6b7180;
   --warn-bg: #2f2612;
   --warn-line: #6b5320;
@@ -105,6 +107,7 @@
   --accent-strong: #8a4680;
   --accent-strong-hover: #9b4f90;
   --selected-solid: #2b2230;
+  --surface-control: #14171e;
   --placeholder: #6b7180;
   --warn-bg: #2f2612;
   --warn-line: #6b5320;
@@ -1835,5 +1838,40 @@ a.mw-title {
 
   .view-bar {
     gap: 10px;
+  }
+}
+
+
+/* surface roles: controls (tinted) / data (plain cards) / selected cluster (accent edge) */
+.sidebar,
+.view-bar {
+  background: var(--surface-control);
+}
+
+.sticky-actions {
+  background: linear-gradient(180deg, transparent 0%, var(--surface-control) 35%);
+}
+
+.details-card {
+  border-top: 3px solid var(--accent-strong);
+}
+
+.details-head {
+  margin: -20px -20px 0;
+  padding: 16px 20px 14px;
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 640px) {
+  .details-head {
+    margin: -14px -14px 0;
+    padding: 12px 14px 10px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .sticky-actions {
+    background: var(--surface-control);
   }
 }
